@@ -1,0 +1,78 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DeLight.App"
+             xmlns:local="using:DeLight"
+             RequestedThemeVariant="Dark">
+	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+	<Application.Resources>
+		<SolidColorBrush x:Key="BackgroundBrush" Color="Black" />
+		<SolidColorBrush x:Key="InteractiveControlBackground" Color="#191919" />
+		<SolidColorBrush x:Key="InteractiveControlMouseOver" Color="#292929"/>
+		<SolidColorBrush x:Key="InteractiveControlBorder" Color="#444" />
+		<SolidColorBrush x:Key="InteractiveControlForeground" Color="White" />
+		<SolidColorBrush x:Key="TextDisabled" Color="#444" />
+		<SolidColorBrush x:Key="ForegroundBrush" Color="White" />
+		<SolidColorBrush x:Key="TextBaseBrush" Color="White" />
+		<SolidColorBrush x:Key="TextAltBrush" Color="Wheat" />
+		<SolidColorBrush x:Key="AccentBrush" Color="#45a4d3" />
+		<SolidColorBrush x:Key="AccentBrushDark" Color="#468" />
+		<SolidColorBrush x:Key="AccentBrushMed" Color="#579" />
+		<SolidColorBrush x:Key="AccentBrushLight" Color="#7cf" />
+	</Application.Resources>
+	<Application.Styles>
+		<FluentTheme />
+		<Style Selector="TextBox:pointerover">
+			<Setter Property="Background" Value="{StaticResource InteractiveControlMouseOver}" />
+			<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+		</Style>
+		<Style Selector="TextBox:focus">
+			<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+		</Style>
+		<Style Selector="TextBox /template/ DockPanel#PART_InnerDockPanel">
+			<Setter Property="Margin" Value="7,3,3,3" />
+		</Style>
+		<Style Selector="TextBox Border">
+			<Setter Property="CornerRadius" Value="5"/>
+		</Style>
+		<Style Selector="TextBox:focus Border">
+			<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+		</Style>
+		<Style Selector="TextBox">
+			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>
+			<Setter Property="FontSize" Value="{Binding $parent[Window].DataContext.BodyFontSize}" />
+			<Setter Property="Background" Value="{StaticResource InteractiveControlBackground}" />
+			<Setter Property="BorderBrush" Value="{StaticResource InteractiveControlBorder}" />
+			<Setter Property="Foreground" Value="{StaticResource InteractiveControlForeground}" />
+			<Setter Property="VerticalContentAlignment" Value="Center" />
+		</Style>
+		<Style Selector="TextBlock">
+			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>
+			<Setter Property="FontSize" Value="{Binding $parent[Window].DataContext.BodyFontSize}" />
+			<Setter Property="Foreground" Value="{StaticResource TextBaseBrush}" />
+		</Style>
+		<Style Selector="TextBlock.listItem">
+			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>
+			<Setter Property="FontStyle" Value="Normal" />
+			<Setter Property="Height" Value="{Binding $parent[Window].DataContext.RowHeight}" />
+		</Style>
+		<Style Selector="TextBox.SubTitle">
+			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>
+			<Setter Property="FontSize" Value="{Binding $parent[Window].DataContext.SubtitleFontSize}" />
+			<Setter Property="Foreground" Value="{StaticResource TextBaseBrush}" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="TextBlock.SubTitle">
+			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>
+			<Setter Property="FontSize" Value="{Binding $parent[Window].DataContext.SubtitleFontSize}" />
+			<Setter Property="Foreground" Value="{StaticResource TextBaseBrush}" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="TextBlock.Title">
+			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>
+			<Setter Property="FontSize" Value="{Binding $parent[Window].DataContext.TitleFontSize}" />
+			<Setter Property="Foreground" Value="{StaticResource TextBaseBrush}" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+		</Style>
+	</Application.Styles>
+
+</Application>
