@@ -2,11 +2,13 @@
 using DeLight.Models;
 using DeLight.Utilities;
 using System;
+using System.Collections.Generic;
 
 namespace DeLight.ViewModels
 {
     public partial class CueViewModel : ObservableObject
     {
+
         [ObservableProperty]
         private Cue? currentCue;
 

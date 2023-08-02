@@ -4,6 +4,7 @@ using DeLight.Models.Files;
 using DeLight.Views;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace DeLight.Utilities
@@ -21,7 +22,7 @@ namespace DeLight.Utilities
 
         public VideoWindow VideoWindow { get; set; }
 
-        public List<CueRunner> ActiveCues { get; set; } = new();
+        public ObservableCollection<CueRunner> ActiveCues { get; set; } = new();
 
         public ShowRunner(Show show, VideoWindow videoWindow)
         {

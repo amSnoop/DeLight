@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DeLight.Models.Files;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,10 +57,14 @@ namespace DeLight.Models
         [ObservableProperty]
         private LightFile lightScene;
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(BGColor))]
         private bool ready;
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(BGColor))]
         private bool disabled;//TODO: Implement this
 
+
+        public SolidColorBrush BGColor => new(!Ready ? Color.Parse("#56211d") : Colors.Transparent);//TODO: Make a ViewModel for this
 
         public Cue()
         {

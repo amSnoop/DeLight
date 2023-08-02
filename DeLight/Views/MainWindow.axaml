@@ -8,8 +8,8 @@
         x:Class="DeLight.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="DeLight WPF Version" 
-        Height="720" 
+        Title="DeLight WPF Version"
+        Height="720"
         Width="1080"
         MinHeight="720"
         MinWidth="1080"
@@ -134,50 +134,33 @@
 				</Grid.RowDefinitions>
 				<TextBlock Classes="Title" >Cue List</TextBlock>
 				<Border VerticalAlignment="Stretch" Grid.Row="1">
-					<StackPanel>
-						<ListBox x:Name="CueList" Grid.Row="1" ItemsSource="{Binding ShowRunner.Show.Cues}" HorizontalAlignment="Stretch" Margin="0" Padding="0" SelectedItem="{Binding ShowRunner.SelectedCue}" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
-							<ListBox.Styles>
-								<Style Selector="ListBoxItem">
-									<Setter Property="Padding" Value="0" />
-									<Setter Property="Margin" Value="0" />
-									<Setter Property="Template">
-										<Setter.Value>
-											<ControlTemplate TargetType="ListBoxItem">
-												<Border x:Name="Bd" Background="{TemplateBinding Background}" BorderThickness="0,0,0,1" BorderBrush="{StaticResource ForegroundBrush}" Padding="0,6">
-													<ContentPresenter />
-												</Border>
-											</ControlTemplate>
-										</Setter.Value>
-									</Setter>
-								</Style>
+					<ListBox x:Name="CueList" Grid.Row="1" ItemsSource="{Binding ShowRunner.Show.Cues}" HorizontalAlignment="Stretch" Margin="0" Padding="0" SelectedItem="{Binding ShowRunner.SelectedCue}" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
+						<ListBox.Styles>
+							<Style Selector="ListBoxItem">
+								<Setter Property="Padding" Value="0" />
+								<Setter Property="Margin" Value="0" />
+							</Style>
 
-								<Style Selector="ListBoxItem:not(.ready)">
-									<Setter Property="Background" Value="#56211d" />
-								</Style>
+							<Style Selector="ListBoxItem:pointerover ContentPresenter">
+								<Setter Property="Background" Value="{StaticResource TextDisabled}" />
+							</Style>
 
-								<Style Selector="ListBoxItem.disabled">
-									<Setter Property="Background" Value="Transparent" />
-								</Style>
+							<Style Selector="ListBoxItem:selected ContentPresenter">
+								<Setter Property="Background" Value="{StaticResource AccentBrushDark}" />
+							</Style>
 
-								<Style Selector="ListBoxItem:pointerover">
-									<Setter Property="Background" Value="{StaticResource TextDisabled}" />
-								</Style>
+							<Style Selector="ListBoxItem:pointerover:selected ContentPresenter">
+								<Setter Property="Background" Value="{StaticResource AccentBrushMed}" />
+							</Style>
 
-								<Style Selector="ListBoxItem:selected">
-									<Setter Property="Background" Value="{StaticResource AccentBrushDark}" />
-								</Style>
+							<Style Selector="ListBoxItem.active ContentPresenter">
+								<Setter Property="Background" Value="{StaticResource AccentBrush}" />
+							</Style>
+						</ListBox.Styles>
 
-								<Style Selector="ListBoxItem:pointerover:selected">
-									<Setter Property="Background" Value="{StaticResource AccentBrushMed}" />
-								</Style>
-
-								<Style Selector="ListBoxItem.active">
-									<Setter Property="Background" Value="{StaticResource AccentBrush}" />
-								</Style>
-							</ListBox.Styles>
-
-							<ListBox.ItemTemplate>
-								<DataTemplate>
+						<ListBox.ItemTemplate>
+							<DataTemplate>
+								<Border BorderThickness="0,0,0,1" BorderBrush="{StaticResource ForegroundBrush}" Padding="0,6" Background="{Binding BGColor}">
 									<Grid>
 										<Grid.ColumnDefinitions>
 											<ColumnDefinition Width="Auto" />
@@ -186,45 +169,39 @@
 										</Grid.ColumnDefinitions>
 										<TextBlock Grid.Column="0" Margin="10,0" HorizontalAlignment="Left" Text="{Binding Number}" Classes ="SubTitle" Classes.ready="{Binding Ready}" Classes.disabled="{Binding Disabled}">
 											<TextBlock.Styles>
-												<Style Selector="TextBlock">
-													<Style Selector="TextBlock:not(.ready)">
-															<Setter Property="Foreground" Value="#F00" />
-														</Style>
-														<Style Selector="TextBlock.disabled">
-															<Setter Property="Foreground" Value="#888" />
-														</Style>
-													</Style>
+												<Style Selector="TextBlock:not(.ready)">
+													<Setter Property="Foreground" Value="#F00" />
+												</Style>
+												<Style Selector="TextBlock.disabled">
+													<Setter Property="Foreground" Value="#888" />
+												</Style>
 											</TextBlock.Styles>
 										</TextBlock>
 										<TextBlock Grid.Column="1" HorizontalAlignment="Left" Text="{Binding Note}" TextTrimming="CharacterEllipsis" Classes="SubTitle" Classes.ready="{Binding Ready}" Classes.disabled="{Binding Disabled}">
 											<TextBlock.Styles>
-												<Style Selector="TextBlock">
-													<Style Selector="TextBlock:not(.ready)">
-														<Setter Property="Foreground" Value="#F00" />
-													</Style>
-													<Style Selector="TextBlock.disabled">
-														<Setter Property="Foreground" Value="#888" />
-													</Style>
+												<Style Selector="TextBlock:not(.ready)">
+													<Setter Property="Foreground" Value="#F00" />
+												</Style>
+												<Style Selector="TextBlock.disabled">
+													<Setter Property="Foreground" Value="#888" />
 												</Style>
 											</TextBlock.Styles>
 										</TextBlock>
 										<TextBlock Grid.Column="2" Margin="10,0" TextAlignment="Right" Text="{Binding Type}" Classes="SubTitle" Classes.ready="{Binding Ready}" Classes.disabled="{Binding Disabled}">
 											<TextBlock.Styles>
-												<Style Selector="TextBlock">
-													<Style Selector="TextBlock:not(.ready)">
-														<Setter Property="Foreground" Value="#F00" />
-													</Style>
-													<Style Selector="TextBlock.disabled">
-														<Setter Property="Foreground" Value="#888" />
-													</Style>
+												<Style Selector="TextBlock:not(.ready)">
+													<Setter Property="Foreground" Value="#F00" />
+												</Style>
+												<Style Selector="TextBlock.disabled">
+													<Setter Property="Foreground" Value="#888" />
 												</Style>
 											</TextBlock.Styles>
 										</TextBlock>
 									</Grid>
-								</DataTemplate>
-							</ListBox.ItemTemplate>
-						</ListBox>
-					</StackPanel>
+								</Border>
+							</DataTemplate>
+						</ListBox.ItemTemplate>
+					</ListBox>
 				</Border>
 			</Grid>
 		</Border>

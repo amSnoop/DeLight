@@ -49,19 +49,6 @@ namespace DeLight.ViewModels
         #endregion
 
 
-        public Dictionary<FadeType, string> FadeTypeStrings { get; } = new() {
-            { FadeType.ShowXPress, "ShowXPress" },
-            { FadeType.FadeOver, "Fade Over" }
-        };
-        public Dictionary<EndAction, string> EndActionStrings { get; } = new() {
-            { EndAction.Loop, "Loop" },
-            { EndAction.FadeAfterEnd, "Fade After End" },
-            { EndAction.FadeBeforeEnd, "Fade Before End" },
-            { EndAction.Freeze, "Freeze" }
-        };
-
-
-
 
         #region Font Size Properties
 
@@ -126,7 +113,6 @@ namespace DeLight.ViewModels
         }
         private void CueList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
-            bool newItem = true;
             if (_window.CueEditorWindow.DataContext is CueEditorViewModel vm && !vm.IsSaved)
             {
                 var result = System.Windows.MessageBox.Show("You have unsaved changes. Would you like to save them?", "Unsaved Changes", MessageBoxButton.YesNoCancel);
@@ -137,11 +123,8 @@ namespace DeLight.ViewModels
                 else if (result == MessageBoxResult.Cancel)
                 {
                     _window.CueList.SelectedItem = e.RemovedItems[0];
-                    newItem = false;
                 }
             }
-            if (ShowRunner.SelectedCue != null && newItem)
-                _window.CueEditorWindow.DataContext = new CueEditorViewModel(ShowRunner.SelectedCue);
         }
 
         #region Other Event Listeners
@@ -155,6 +138,8 @@ namespace DeLight.ViewModels
             if (e.PropertyName == nameof(ShowRunner.SelectedCue))
             {
                 PreviewCueViewModel.CurrentCue = ShowRunner.SelectedCue;
+                if(ShowRunner.SelectedCue != null)
+                    _window.CueEditorWindow.DataContext = new CueEditorViewModel(ShowRunner.SelectedCue);
             }
         }
 
@@ -169,7 +154,7 @@ namespace DeLight.ViewModels
         //Monitor selection changed, send it to video window.
         partial void OnSelectedMonitorChanged(string value)
         {
-            if(value == null)
+            if (value == null)
             {
                 Debug.WriteLine("Selected monitor is null");
                 return;
