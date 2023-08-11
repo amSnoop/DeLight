@@ -59,10 +59,12 @@ namespace DeLight.Views
         }
         public void SetScreen(Screen screen)
         {
-            WindowState = WindowState.Normal;
-            Top = screen.Bounds.Top;
-            Left = screen.Bounds.Left;
-            WindowState = WindowState.Maximized;
+            Dispatcher.Invoke(() => {
+                WindowState = WindowState.Normal;
+                Top = screen.Bounds.Top;
+                Left = screen.Bounds.Left;
+                WindowState = WindowState.Maximized;
+            });
         }
     }
 }

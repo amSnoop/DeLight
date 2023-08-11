@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Threading;
 using DeLight.Models;
 using DeLight.Models.Files;
@@ -109,15 +110,17 @@ namespace DeLight.Utilities
             foreach (var sf in cue.ScreenFiles.Values)
             {
                 //TODO: Add support for other types of cues
-                CustomMediaElement cme;
+                IRunnableScreenCue cme;
                 if (sf is VideoFile vf)
                     cme = new VideoMediaElement(vf);
                 else if (sf is ImageFile imgf)
-                    cme = new ImageMediaElement(imgf);
+                    cme = new ImageMediaElement(imgf); //extends CustomMediaElement
+                else if (sf is BlackoutScreenFile bof)
+                    cme = new BlackoutVisualCue(bof); //extends Border
                 else
-                    throw new Exception("Unknown VisualCue type, dumbass. wtf u doin boi");
+                    throw new Exception("Unknown VisualCue type");
                 DetermineFileEndingEvent(cme);
-                VideoWindow.Container.Children.Add(cme);
+                VideoWindow.Container.Children.Add(cme.GetUIElement());//can't just add an IRunnableVisualCue to the layout
                 VisualCues.Add(cme);
             }
             FadedOut += OnFadedOut;
@@ -216,8 +219,8 @@ namespace DeLight.Utilities
             foreach (var vc in VisualCues)
             {
                 vc.Stop();
-                if (vc is CustomMediaElement cme)
-                    VideoWindow.Container.Children.Remove(cme);
+                if (vc is IRunnableScreenCue cme)
+                    VideoWindow.Container.Children.Remove(cme.GetUIElement());
             }
         }
 

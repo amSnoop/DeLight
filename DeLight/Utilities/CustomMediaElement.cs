@@ -9,7 +9,7 @@ using System.Windows.Media.Animation;
 
 namespace DeLight.Utilities
 {
-    public abstract class CustomMediaElement : MediaElement, IRunnableVisualCue
+    public abstract class CustomMediaElement : MediaElement, IRunnableScreenCue
     {
 
         private TaskCompletionSource<bool> tcs = new();
@@ -31,7 +31,11 @@ namespace DeLight.Utilities
             UnloadedBehavior = MediaState.Manual;
             File = file;
             IsMuted = false;
-            Source = new Uri(file.FilePath);
+            try {
+                Source = new Uri(file.FilePath);
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
             Opacity = 0;
             FadedOut += OnFadedOut;
             MediaOpened += (s, e) => tcs.SetResult(true);
@@ -61,7 +65,7 @@ namespace DeLight.Utilities
         public new virtual void Pause() { base.Pause(); }
         public new virtual void Stop() { base.Stop(); }
 
-
+        public UIElement GetUIElement() => this;
         //Loads the cue so that it has a NaturalDuration TimeSpan TODO: Disallow playing until loaded.
         public async Task LoadAsync()
         {

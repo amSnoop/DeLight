@@ -1,6 +1,7 @@
 ﻿using DeLight.Models.Files;
 using System;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace DeLight.Models
 {
@@ -25,5 +26,9 @@ namespace DeLight.Models
 
         public Task LoadAsync();
 
+    }
+
+    public interface IRunnableScreenCue : IRunnableVisualCue {
+        public UIElement GetUIElement();
     }
 }

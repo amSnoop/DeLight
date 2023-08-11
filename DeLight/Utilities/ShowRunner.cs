@@ -53,6 +53,7 @@ namespace DeLight.Utilities
                 ActiveCue.IsActive = false;
                 foreach (CueRunner cueRunner in ActiveCues)
                     cueRunner.End();
+                ActiveCues.Clear();
             }
 
             // The show was over, but a new cue is manually selected

@@ -60,7 +60,7 @@ namespace DeLight.Utilities
             base.Stop();
         }
     }
-    public class BlackoutVisualCue : Border, IRunnableVisualCue
+    public class BlackoutVisualCue : Border, IRunnableScreenCue
     {
         public List<Storyboard> storyboards = new();
         public bool IsFadingOut { get; private set; } = false;
@@ -114,6 +114,7 @@ namespace DeLight.Utilities
 
         public void SeekTo(double time) { }
 
+        public UIElement GetUIElement() => this;
         public void Stop() { }
         private void BeginAnimation(DoubleAnimation animation)
         {
