@@ -9,7 +9,26 @@ using System.Linq;
 
 namespace DeLight.Utilities
 {
-    public partial class ShowRunner : ObservableObject
+    public partial class ShowRunner : ObservableObject {
+        [ObservableProperty]
+        private Show show;
+        [ObservableProperty]
+        private ObservableCollection<CueRunner> activeCues;
+
+        public ShowRunner(Show show) {
+            Show = show;
+            activeCues = new();
+            Prepare();
+        }
+
+        public void Prepare() {
+            foreach (Cue cue in Show.Cues) {
+                
+            }
+        }
+    }
+
+    public partial class ShowRunner2 : ObservableObject
     {
         public Show Show { get; set; }
 
@@ -24,7 +43,7 @@ namespace DeLight.Utilities
 
         public ObservableCollection<CueRunner> ActiveCues { get; set; } = new();
 
-        public ShowRunner(Show show, VideoWindow videoWindow)
+        public ShowRunner2(Show show, VideoWindow videoWindow)
         {
             Show = show;
             VideoWindow = videoWindow;

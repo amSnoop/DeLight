@@ -38,7 +38,7 @@ namespace DeLight.ViewModels
         [ObservableProperty]
         private CueViewModel activeCueViewModel = new();
         [ObservableProperty]
-        private ShowRunner showRunner;
+        private ShowRunner2 showRunner;
         [ObservableProperty]
         private double subTitleFontFactor = 1.2;
         [ObservableProperty]
