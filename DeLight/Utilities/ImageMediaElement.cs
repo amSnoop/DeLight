@@ -2,13 +2,13 @@
 using DeLight.Models.Files;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 
 namespace DeLight.Utilities
 {
@@ -65,9 +65,11 @@ namespace DeLight.Utilities
         public List<Storyboard> storyboards = new();
         public bool IsFadingOut { get; private set; } = false;
 
-        public double? Duration => 0;
+        public double? Duration => File.FadeInDuration + 1;
 
         public BlackoutScreenFile File { get; }
+
+        private DispatcherTimer _opacityDebugTimer;
 
         CueFile IRunnableVisualCue.File => File;
 
@@ -81,6 +83,7 @@ namespace DeLight.Utilities
             HorizontalAlignment = HorizontalAlignment.Stretch;
             VerticalAlignment = VerticalAlignment.Stretch;
             Background = System.Windows.Media.Brushes.Black;
+            Opacity = 0;
         }
         public void ClearCurrentAnimations()
         {
@@ -88,11 +91,31 @@ namespace DeLight.Utilities
                 storyboard.Stop();
             storyboards.Clear();
         }
+        private void StartOpacityDebugging()
+        {
+            _opacityDebugTimer = new DispatcherTimer();
+            _opacityDebugTimer.Interval = TimeSpan.FromMilliseconds(50); // Adjust as necessary
+            _opacityDebugTimer.Tick += (s, e) =>
+            {
+                Debug.WriteLine($"Opacity: {this.Opacity}");
+            };
+            _opacityDebugTimer.Start();
+        }
+
+        private void StopOpacityDebugging()
+        {
+            _opacityDebugTimer?.Stop();
+        }
 
         public void FadeIn(double duration = -1)
         {
+            StartOpacityDebugging();
             DoubleAnimation fadeIn = new(1, TimeSpan.FromSeconds(duration == -1 ? File.FadeInDuration : duration));
-            fadeIn.Completed += (s, e) => FadedIn?.Invoke(this, EventArgs.Empty);
+            fadeIn.Completed += (s, e) =>
+            {
+                FadedIn?.Invoke(this, EventArgs.Empty);
+                StopOpacityDebugging();
+            };
             BeginAnimation(fadeIn);
         }
 

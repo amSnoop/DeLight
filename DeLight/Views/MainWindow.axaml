@@ -27,7 +27,7 @@
 			<ColumnDefinition Width="1.5*" MinWidth="20" />
 			<ColumnDefinition Width="10*" MinWidth="300"/>
 			<ColumnDefinition Width="3*" />
-			<ColumnDefinition Width="30*" />
+			<ColumnDefinition Width="20*" />
 			<ColumnDefinition Width="1.5*" />
 			<ColumnDefinition Width="1.5*" />
 			<ColumnDefinition Width="22*" MinWidth="350"/>
@@ -134,71 +134,95 @@
 				</Grid.RowDefinitions>
 				<TextBlock Classes="Title" >Cue List</TextBlock>
 				<Border VerticalAlignment="Stretch" Grid.Row="1">
-					<ListBox x:Name="CueList" Grid.Row="1" ItemsSource="{Binding ShowRunner.Show.Cues}" HorizontalAlignment="Stretch" Margin="0" Padding="0" SelectedItem="{Binding ShowRunner.SelectedCue}" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
+					<ListBox x:Name="CueList" Grid.Row="1" ItemsSource="{Binding Cues}" HorizontalAlignment="Stretch" Margin="0" Padding="0" SelectedItem="{Binding SelectedCue, Mode=TwoWay}" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
 						<ListBox.Styles>
 							<Style Selector="ListBoxItem">
 								<Setter Property="Padding" Value="0" />
 								<Setter Property="Margin" Value="0" />
+								<Setter Property="Focusable" Value="False" />
+							</Style>
+							<Style Selector="ListBoxItem:selected ContentPresenter">
+								<Setter Property="Background" Value="Transparent" />
+								<Setter Property="Foreground" Value="Transparent" />
 							</Style>
 
 							<Style Selector="ListBoxItem:pointerover ContentPresenter">
-								<Setter Property="Background" Value="{StaticResource TextDisabled}" />
+								<Setter Property="Background" Value="Transparent" />
 							</Style>
-
-							<Style Selector="ListBoxItem:selected ContentPresenter">
-								<Setter Property="Background" Value="{StaticResource AccentBrushDark}" />
+							<Style Selector="ListBoxItem:focused ContentPresenter">
+								<Setter Property="Background" Value="Transparent" />
 							</Style>
-
-							<Style Selector="ListBoxItem:pointerover:selected ContentPresenter">
-								<Setter Property="Background" Value="{StaticResource AccentBrushMed}" />
-							</Style>
-
-							<Style Selector="ListBoxItem.active ContentPresenter">
-								<Setter Property="Background" Value="{StaticResource AccentBrush}" />
+							<Style Selector="ListBoxItem:pressed ContentPresenter">
+								<Setter Property="Background" Value="Transparent" />
 							</Style>
 						</ListBox.Styles>
-
 						<ListBox.ItemTemplate>
 							<DataTemplate>
-								<Border BorderThickness="0,0,0,1" BorderBrush="{StaticResource ForegroundBrush}" Padding="0,6" Background="{Binding BGColor}">
-									<Grid>
-										<Grid.ColumnDefinitions>
-											<ColumnDefinition Width="Auto" />
-											<ColumnDefinition Width="*" />
-											<ColumnDefinition Width="Auto" />
-										</Grid.ColumnDefinitions>
-										<TextBlock Grid.Column="0" Margin="10,0" HorizontalAlignment="Left" Text="{Binding Number}" Classes ="SubTitle" Classes.ready="{Binding Ready}" Classes.disabled="{Binding Disabled}">
-											<TextBlock.Styles>
-												<Style Selector="TextBlock:not(.ready)">
-													<Setter Property="Foreground" Value="#F00" />
-												</Style>
-												<Style Selector="TextBlock.disabled">
-													<Setter Property="Foreground" Value="#888" />
-												</Style>
-											</TextBlock.Styles>
-										</TextBlock>
-										<TextBlock Grid.Column="1" HorizontalAlignment="Left" Text="{Binding Note}" TextTrimming="CharacterEllipsis" Classes="SubTitle" Classes.ready="{Binding Ready}" Classes.disabled="{Binding Disabled}">
-											<TextBlock.Styles>
-												<Style Selector="TextBlock:not(.ready)">
-													<Setter Property="Foreground" Value="#F00" />
-												</Style>
-												<Style Selector="TextBlock.disabled">
-													<Setter Property="Foreground" Value="#888" />
-												</Style>
-											</TextBlock.Styles>
-										</TextBlock>
-										<TextBlock Grid.Column="2" Margin="10,0" TextAlignment="Right" Text="{Binding Type}" Classes="SubTitle" Classes.ready="{Binding Ready}" Classes.disabled="{Binding Disabled}">
-											<TextBlock.Styles>
-												<Style Selector="TextBlock:not(.ready)">
-													<Setter Property="Foreground" Value="#F00" />
-												</Style>
-												<Style Selector="TextBlock.disabled">
-													<Setter Property="Foreground" Value="#888" />
-												</Style>
-											</TextBlock.Styles>
-										</TextBlock>
-									</Grid>
-								</Border>
+								<Grid>
+									<Border ZIndex="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="6" Background="Transparent">
+										<Border.Styles>
+											<Style Selector="Border:pointerover">
+												<Setter Property="BorderBrush">
+													<Setter.Value>
+														<LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+															<GradientStop Color="#99DDDDDD" Offset=".5"/>
+															<GradientStop Color="Transparent" Offset="1"/>
+														</LinearGradientBrush>
+													</Setter.Value>
+												</Setter>
+											</Style>
+											<Style Selector="Border:not(:pointerover)">
+												<Setter Property="BorderBrush" Value="Transparent" />
+											</Style>
+										</Border.Styles>
+									</Border>
+									<Border Padding="0,6" BorderThickness="0,0,0,1" BorderBrush="{StaticResource ForegroundBrush}" Classes.disabled="{Binding Disabled}" Classes.error="{Binding Error}" Classes.active="{Binding Active}" Classes.selected="{Binding Selected}" >
+									<Border.Styles>
+										<Style Selector="Border.disabled">
+											<Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
+										</Style>
+										<Style Selector="Border.error">
+											<Setter Property="Background" Value="#56211d" />
+										</Style>
+										<Style Selector="Border.active">
+											<Setter Property="Background" Value="{StaticResource AccentBrush}" />
+										</Style>
+										<Style Selector="Border.selected">
+											<Setter Property="Background" Value="{StaticResource AccentBrushDark}" />
+											<!-- Some color for selection, adjust as needed -->
+										</Style>
+										<Style Selector="Border.selected.active">
+											<Setter Property="Background" Value="{StaticResource AccentBrushLight}" />
+										</Style>
+									</Border.Styles>
+										<Grid>
+											<Grid.ColumnDefinitions>
+												<ColumnDefinition Width="Auto" />
+												<ColumnDefinition Width="*" />
+											</Grid.ColumnDefinitions>
+											<TextBlock Grid.Column="0" Margin="10,0" HorizontalAlignment="Left" Text="{Binding Cue.Number}" Classes="SubTitle" Classes.error="{Binding Error}" Classes.disabled="{Binding Disabled}">
+												<TextBlock.Styles>
+													<Style Selector="TextBlock.error">
+														<Setter Property="Foreground" Value="#F33" />
+													</Style>
+													<Style Selector="TextBlock.disabled">
+														<Setter Property="Foreground" Value="{StaticResource TextDisabled}" />
+													</Style>
+												</TextBlock.Styles>
+											</TextBlock>
+											<TextBlock Grid.Column="1" HorizontalAlignment="Left" Text="{Binding Cue.Note}" TextTrimming="CharacterEllipsis" Classes="SubTitle" Classes.error="{Binding Error}" Classes.disabled="{Binding Disabled}">
+												<TextBlock.Styles>
+													<Style Selector="TextBlock.error">
+														<Setter Property="Foreground" Value="#F33" />
+													</Style>
+													<Style Selector="TextBlock.disabled">
+														<Setter Property="Foreground" Value="{StaticResource TextDisabled}" />
+													</Style>
+												</TextBlock.Styles>
+											</TextBlock>
+										</Grid>
+									</Border>
+								</Grid>
 							</DataTemplate>
 						</ListBox.ItemTemplate>
 					</ListBox>
@@ -207,7 +231,7 @@
 		</Border>
 
 		<!-- Playback Controls -->
-		<Border Grid.Row="1" Grid.ColumnSpan="10" Padding="20" BorderBrush="{StaticResource AccentBrush}" BorderThickness="0,1,0,0" DataContext="{Binding ActiveCueViewModel}">
+		<Border Grid.Row="1" Grid.ColumnSpan="10" Padding="20" BorderBrush="{StaticResource AccentBrush}" BorderThickness="0,1,0,0" x:Name="PlaybackBar">
 			<Grid>
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="Auto" />
@@ -230,7 +254,7 @@
 				<Button Grid.Column="0" Content="Play" Margin="5,5,5,5" Grid.Row="1" Command=""/>
 				<Button Grid.Column="1" Content="Pause" Margin="5,5,5,5" Grid.Row="1"/>
 				<Button Grid.Column="2" Content="Stop" Margin="5,5,5,5" Grid.Row="1" Command=""/>
-				<Slider Grid.Column="3" Grid.Row ="1"  Minimum="0" Maximum="1" VerticalAlignment="Center" Value="{Binding CurrentCue.Volume}" />
+				<Slider Grid.Column="3" Grid.Row ="1"  Minimum="0" Maximum="1" VerticalAlignment="Center" Value="{Binding Volume}" />
 				<TextBlock Grid.Column="5" Grid.Row="1" Text="{Binding FormattedNumber}" Foreground="{StaticResource TextAltBrush}" Classes="Title"  />
 				<TextBlock Grid.Column="6" Grid.Row="1" Text="{Binding Note}" Classes="Title"  />
 				<TextBlock Grid.Column="8" Text="{Binding FormattedCurrentTime}" Foreground="{StaticResource TextAltBrush}" Grid.Row="1"  Classes="Title"  />
@@ -308,7 +332,7 @@
 
 
 			<Border Grid.Row="3">
-				<TextBlock Text="Defaults" Classes="Title"  TextWrapping="WrapWithOverflow"/>
+				<TextBlock Text="Controls" Classes="Title"  TextWrapping="WrapWithOverflow"/>
 			</Border>
 			<Grid Grid.Row="4" x:Name="DefaultCueDisplay">
 				<Grid.RowDefinitions>

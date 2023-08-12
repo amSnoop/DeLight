@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace DeLight.ViewModels
 {
@@ -45,14 +44,14 @@ namespace DeLight.ViewModels
         private double duration;
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(Header))]
-        private BlackoutReason reason;
+        private FileErrorState state;
 
         private int _index;
         public string HeaderStart => _index == 0 ? "Light Scene" : $"Projector {_index}";
 
         public string HeaderEnd => ": " + (Type == ExpectedFileType.Lights ? "Ready" : Type.ToString());
 
-        public string ReasonString => Reason != BlackoutReason.EmptyPath ? $" ({Reason})" : "";
+        public string ReasonString => State != FileErrorState.None ? $" ({State})" : "";
 
         public string FileName => Path != null ? $" ({System.IO.Path.GetFileNameWithoutExtension(Path)})" : "";
 
@@ -75,37 +74,6 @@ namespace DeLight.ViewModels
             duration = file is IDurationFile df ? df.Duration : 0;
             OpenFileDialog = new(OpenFileDialogAsync);
 
-            if (file is AudioFile)
-                Type = ExpectedFileType.Audio;
-            else if (file is ScreenFile screenFile)
-            {
-                if (screenFile is VideoFile)
-                    Type = ExpectedFileType.Video;
-                else if (screenFile is GifFile)
-                    Type = ExpectedFileType.Gif;
-                else if (screenFile is ImageFile)
-                    Type = ExpectedFileType.Image;
-                else if (screenFile is BlackoutScreenFile bsf)
-                {
-                    Type = ExpectedFileType.Blackout;
-                    reason = bsf.Reason;
-                }
-                else
-                    throw new Exception("Invalid ScreenFile type");
-            }
-            else if (file is LightFile)
-            {
-                if (file is BlackoutLightFile bsf)
-                {
-                    Type = ExpectedFileType.Blackout;
-                    reason = bsf.Reason;
-                }
-                else
-                    Type = ExpectedFileType.Lights;
-            }
-            else
-                throw new Exception("Invalid CueFile type");
-
             OnPathChanged(Path);//I am only doing this because I cannot decide if I want to let the initial type be influenced by the incoming type or not
         }
         partial void OnPathChanged(string value)
@@ -119,12 +87,12 @@ namespace DeLight.ViewModels
 
             if (string.IsNullOrEmpty(value))
             {
-                Reason = BlackoutReason.EmptyPath;
                 Type = ExpectedFileType.Blackout;
+                State = FileErrorState.None;
             }
-            else if (!System.IO.File.Exists(value))
+            else if (!File.Exists(value))
             {
-                Reason = BlackoutReason.InvalidPath;
+                State = FileErrorState.InvalidPath;
                 Type = ExpectedFileType.Blackout;
             }
             else if (ext == ".scex" && _index == 0)
@@ -133,7 +101,7 @@ namespace DeLight.ViewModels
             }
             else if (ext == ".scex" && _index != 0)
             {
-                Reason = BlackoutReason.InvalidFileType;
+                State = FileErrorState.InvalidFileType;
                 Type = ExpectedFileType.Blackout;
             }
             else if (videoExtensions.Contains(ext))
@@ -154,7 +122,7 @@ namespace DeLight.ViewModels
             }
             else
             {
-                Reason = BlackoutReason.InvalidFileType;
+                State = FileErrorState.InvalidFileType;
                 Type = ExpectedFileType.Blackout;
             }
         }

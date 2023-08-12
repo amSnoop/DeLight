@@ -1,179 +1,142 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using DeLight.Views;
 using Microsoft.Win32;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System;
 using System.Linq;
-using Avalonia.Controls;
 using System.Windows.Forms;
-using System.Windows.Threading;
 using DeLight.Utilities;
-using DeLight.Models;
-using System.Windows;
 using System.Diagnostics;
+using System.Collections.ObjectModel;
 
 namespace DeLight.ViewModels
 {
+
     public partial class MainWindowViewModel : ObservableObject
     {
-        private readonly MainWindow _window;
+
         private List<Screen> _screenObjects;
 
-        public bool VideoIsVisible => VideoWindow.IsVisible;
-        public VideoWindow VideoWindow { get; set; } = new();
+        private Screen? selectedScreen;
 
-        private DispatcherTimer _timer = new();
-        private int _timerInterval = 50;
-        private int _totalTicks = 0;
-        private bool foundDuration = false;
-        #region Observable Properties
+        private readonly ShowRunner showRunner;
+
+        #region Font Size Properties
+        [ObservableProperty]
+        private double bodyFontSize = 12;
+        [ObservableProperty]
+        private double cueFontSize = 14;
+        [ObservableProperty]
+        private double subtitleFontSize = 14;
+        [ObservableProperty]
+        private double titleFontSize = 30;
+
+
+
+        public void UpdateWindowSize(double height)
+        {
+            double baseFontSize = 12;
+            double scaleFactor = 1 + Math.Log(height / 720.0);
+            double maxFontSize = 25;
+            double fontSize = Math.Max(Math.Min(baseFontSize * scaleFactor, maxFontSize), baseFontSize);
+            double subTitleFontFactor = 1.2;
+            double titleFontFactor = 3;
+            double cueFontFactor = 1.2;
+            BodyFontSize = fontSize;
+            CueFontSize = BodyFontSize * cueFontFactor;
+            SubtitleFontSize = BodyFontSize * subTitleFontFactor;
+            TitleFontSize = BodyFontSize * titleFontFactor;
+        }
+
+        #endregion
 
         [ObservableProperty]
         private string selectedMonitor = "";
         [ObservableProperty]
         private List<string> monitors = new();
-        [ObservableProperty]
-        private CueViewModel previewCueViewModel = new();
-        [ObservableProperty]
-        private CueViewModel activeCueViewModel = new();
-        [ObservableProperty]
-        private ShowRunner2 showRunner;
-        [ObservableProperty]
-        private double subTitleFontFactor = 1.2;
-        [ObservableProperty]
-        private double titleFontFactor = 3;
-        [ObservableProperty]
-        private double cueFontFactor = 1.2;
 
-        #endregion
+        [ObservableProperty]
+        private CuePlaybackViewModel? cuePlaybackViewModel;
+        public ObservableCollection<CueListCueViewModel> Cues { get; set; }
 
+        [ObservableProperty]
+        public CueListCueViewModel? selectedCue;
 
-
-        #region Font Size Properties
-
-        public double BodyFontSize
+        public MainWindowViewModel(ShowRunner runner)
         {
-            get
+            showRunner = runner;
+            ConfigureMonitorDisplay();
+            Cues = new();
+            showRunner.OnLoaded += ShowRunner_OnLoaded;
+            showRunner.CueChanged += ShowRunner_CueChanged;
+            showRunner.PrepareCues();
+        }
+
+        partial void OnSelectedCueChanging(CueListCueViewModel? value)
+        {
+            if (SelectedCue != null)
+                SelectedCue.Selected = false;
+            if (value != null)
+                value.Selected = true;
+        }
+
+
+        public void ShowRunner_OnLoaded(object? sender, EventArgs e)
+        {
+            Cues.Clear();
+            foreach (var cue in showRunner.Show.Cues)
             {
-                double baseFontSize = 12;
-                double scaleFactor = 1 + Math.Log(_window.Bounds.Height / 720.0);
-                double maxFontSize = 25;
-                double fontSize = Math.Max(Math.Min(baseFontSize * scaleFactor, maxFontSize), baseFontSize);
-                return fontSize;
+                Cues.Add(new CueListCueViewModel(cue));
+            }
+            CuePlaybackViewModel = new CuePlaybackViewModel(showRunner.Show.Cues.FirstOrDefault());
+        }
+
+        public void ShowRunner_CueChanged(object? sender, CueChangedEventArgs e)
+        {
+            if (e.ActionTaken == CueChangedEventArgs.ChangeType.Added)
+            {
+                if (e.Index < Cues.Count)
+                {
+                    Cues.Insert(e.Index, new CueListCueViewModel(e.Cue));
+                }
+                else
+                {
+                    Cues.Add(new CueListCueViewModel(e.Cue));
+                }
+            }
+            else if (e.ActionTaken == CueChangedEventArgs.ChangeType.Deleted)
+            {
+                foreach (var cue in Cues)
+                {
+                    if (cue.Cue == e.Cue)
+                    {
+                        Cues.Remove(cue);
+                        break;
+                    }
+                }
             }
         }
 
-        public double CueFontSize => BodyFontSize * CueFontFactor;
-        public double SubtitleFontSize => BodyFontSize * SubTitleFontFactor;
-
-        public double TitleFontSize => BodyFontSize * TitleFontFactor;
-
-        public void UpdateWindowSize()
+        #region Monitor Selection
+        private void ConfigureMonitorDisplay()
         {
-            OnPropertyChanged(nameof(TitleFontSize));
-            OnPropertyChanged(nameof(SubtitleFontSize));
-            OnPropertyChanged(nameof(BodyFontSize));
-            OnPropertyChanged(nameof(CueFontSize));
-        }
-
-        #endregion
-
-        #region Non [ObservableProperty] Properties that send updates to the view
-
-        #endregion
-
-        public MainWindowViewModel(MainWindow window)
-        {
-            ShowRunner = new(Show.Load(GlobalSettings.Instance.LastShowPath), VideoWindow);
-            ShowRunner.PropertyChanged += ActiveCueChanged;
-            ShowRunner.ActiveCue = ShowRunner.Show.Cues.FirstOrDefault();
-            _window = window;
             _screenObjects = Screen.AllScreens.ToList();
             Monitors = _screenObjects.Select((s, i) => $"Monitor {i + 1}: {s.Bounds.Width}x{s.Bounds.Height}").ToList();
             if (Screen.PrimaryScreen == null)
             {
                 SelectedMonitor = Monitors.FirstOrDefault() ?? "";
-                VideoWindow.SetScreen(_screenObjects.First());
+                showRunner.SetVideoScreen(_screenObjects.First());
             }
             else
             {
                 SelectedMonitor = Monitors[_screenObjects.IndexOf(Screen.PrimaryScreen)];
-                VideoWindow.SetScreen(Screen.PrimaryScreen);
+                showRunner.SetVideoScreen(Screen.PrimaryScreen);
             }
             SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanged;
-            VideoWindow.GotFocus += VideoWindow_GotFocus;
-            _timer.Interval = TimeSpan.FromMilliseconds(_timerInterval);
-        }
-        public void MainWindowLoaded()
-        {
-            _window.DefaultCueDisplay.DataContext = GlobalSettings.Instance.DefaultCue;
-            _window.SettingsDisplay.DataContext = GlobalSettings.Instance;
-            _window.CueList.SelectionChanged += CueList_SelectionChanged;
-        }
-        private void CueList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
-        {
-            if (_window.CueEditorWindow.DataContext is CueEditorViewModel vm && !vm.IsSaved)
-            {
-                var result = System.Windows.MessageBox.Show("You have unsaved changes. Would you like to save them?", "Unsaved Changes", MessageBoxButton.YesNoCancel);
-                if (result == MessageBoxResult.Yes)
-                {
-                    vm.Save();
-                }
-                else if (result == MessageBoxResult.Cancel)
-                {
-                    _window.CueList.SelectedItem = e.RemovedItems[0];
-                }
-            }
         }
 
-        #region Other Event Listeners
-
-        private void ActiveCueChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(ShowRunner.ActiveCue))
-            {
-                ActiveCueViewModel.CurrentCue = ShowRunner.ActiveCue;
-            }
-            if (e.PropertyName == nameof(ShowRunner.SelectedCue))
-            {
-                PreviewCueViewModel.CurrentCue = ShowRunner.SelectedCue;
-                if(ShowRunner.SelectedCue != null)
-                    _window.CueEditorWindow.DataContext = new CueEditorViewModel(ShowRunner.SelectedCue);
-            }
-        }
-
-        //Volume property of active cue changed, send it to video window.
-        private void ActiveCue_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(Cue.Volume))
-            {
-            }
-        }
-
-        //Monitor selection changed, send it to video window.
-        partial void OnSelectedMonitorChanged(string value)
-        {
-            if (value == null)
-            {
-                Debug.WriteLine("Selected monitor is null");
-                return;
-            }
-            var screen = _screenObjects[Monitors.IndexOf(SelectedMonitor)];
-            VideoWindow.SetScreen(screen);
-        }
-
-        //refocus the main window if the video window is clicked [Not working]
-        public void VideoWindow_GotFocus(object sender, EventArgs e)
-        {
-            _window.Activate();
-            _window.Focus();
-        }
-
-        //A new monitor is plugged in or display settings are changed, update the list of monitors TODO: Test
         private void SystemEvents_DisplaySettingsChanged(object? sender, EventArgs e)
         {
-            var screen = _screenObjects[_window.MonitorSelector.SelectedIndex];
+            var screen = selectedScreen;
             _screenObjects = Screen.AllScreens.ToList();
             Monitors = _screenObjects.Select((s, i) => $"Monitor {i + 1}: {s.Bounds.Width}x{s.Bounds.Height}").ToList();
             try
@@ -183,34 +146,72 @@ namespace DeLight.ViewModels
             catch (Exception)
             {
                 SelectedMonitor = Monitors.FirstOrDefault() ?? "";
+                Debug.WriteLine("Monitor not found");
             }
         }
-
+        partial void OnSelectedMonitorChanged(string value)
+        {
+            if (value == null)
+            {
+                Debug.WriteLine("Selected monitor is null");
+                return;
+            }
+            var screen = _screenObjects[Monitors.IndexOf(SelectedMonitor)];
+            showRunner.SetVideoScreen(screen);
+        }
 
         #endregion
 
-
-        public void HideVideoPlayback()
+        public void PlayCue()
         {
-            VideoWindow.Hide();
-            ShowRunner.Stop();
-            _window.Focus();
+            SelectedCue ??= Cues.FirstOrDefault();
+            var curCue = Cues.FirstOrDefault(c => c.Cue == showRunner?.ActiveCue?.Cue);
+            if (curCue != null)
+                curCue.Active = false;
+            if (SelectedCue != null)
+            {
+                showRunner.Play(SelectedCue.Cue);
+                SelectedCue.Active = true;
+                if (CuePlaybackViewModel == null)
+                    CuePlaybackViewModel = new CuePlaybackViewModel(SelectedCue.Cue);
+                else
+                    CuePlaybackViewModel.Cue = SelectedCue.Cue;
+
+                for (int i = Cues.IndexOf(SelectedCue) + 1; i < Cues.Count; i++)
+                    if (!Cues[i].Disabled)
+                    {
+                        SelectedCue = Cues[i];
+                        return;
+                    }
+                SelectedCue = null;
+            }
+        }
+        public void StopCue()
+        {
+            showRunner.Stop();
+        }
+        public void PauseCue()
+        {
+            showRunner.Pause();
+        }
+        public void ResumeCue()
+        {
+            showRunner.Unpause();
+        }
+        public void SeekTo(int tick)
+        {
+            showRunner.SeekTo(tick);
         }
 
-        public void PlayNextCue()
+        public void HideVideoWindow()
         {
-            // The show is over and no cue is selected
-            ShowRunner.Play();
-            _window.Activate();
-            _window.Focus();
+            showRunner.Stop();
+            showRunner.HideVideoWindow();
         }
-        public void Stop()
+        public void ShowVideoWindow()
         {
-            ShowRunner.Stop();
-            VideoWindow.Stop();
-            _window.Activate();
-            _window.Focus();
+            showRunner.ShowVideoWindow();
         }
-
     }
+
 }

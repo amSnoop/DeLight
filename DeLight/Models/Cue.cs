@@ -78,9 +78,9 @@ namespace DeLight.Models
             FadeType = FadeType.FadeOver;
             ScreenFiles = new()
             {
-                { 1, new BlackoutScreenFile(BlackoutReason.EmptyPath) }
+                { 1, new BlackoutScreenFile() }
             };
-            LightScene = new BlackoutLightFile(BlackoutReason.EmptyPath);
+            LightScene = new BlackoutLightFile();
         }
 
         public bool SetScreenFile(int screenNumber, ScreenFile file)
@@ -98,7 +98,7 @@ namespace DeLight.Models
             int curScreen = ScreenFiles.FirstOrDefault(x => x.Value == file).Key;
             if (curScreen != 0 && screenNumber > 0)
             {
-                ScreenFiles[curScreen] = new BlackoutScreenFile(BlackoutReason.EmptyPath);
+                ScreenFiles[curScreen] = new BlackoutScreenFile();
                 ScreenFiles[screenNumber] = file;
                 return true;
             }

@@ -2,8 +2,8 @@ using Avalonia.Controls;
 using DeLight.ViewModels;
 using System;
 using DeLight.Utilities;
-using Avalonia.Input;
 using System.Windows.Input;
+using Avalonia.Input;
 
 namespace DeLight.Views
 {
@@ -22,25 +22,44 @@ namespace DeLight.Views
         {
             WindowState = WindowState.Normal;
             Position = new(GlobalSettings.Instance.LastScreenLeft, GlobalSettings.Instance.LastScreenTop);
-            DataContext = new MainWindowViewModel(this);
             InitializeComponent();
-            ((MainWindowViewModel)DataContext).MainWindowLoaded();
-
+            DefaultCueDisplay.DataContext = GlobalSettings.Instance.DefaultCue;
+            SettingsDisplay.DataContext = GlobalSettings.Instance;
+            CueList.SelectionChanged += CueList_SelectionChanged;
             //usbDeviceNotifier = DeviceNotifier.OpenDeviceNotifier();
             //usbDeviceNotifier.OnDeviceNotify += OnDeviceNotifyEvent;
             KeyDown += OnKeyDown;
             SizeChanged += MainWindow_OnSizeChanged;
-            //MouseDown += MainWindow_MouseDown;
+            PointerPressed += MainWindow_MouseDown;
             Loaded += MainWindow_Loaded;
+            CueList.Focusable = false;
         }
+
+        public void CueList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            if (CueEditorWindow.IsVisible && CueEditorWindow.DataContext is CueEditorViewModel cevm && !cevm.IsSaved)
+            {
+                var result = System.Windows.MessageBox.Show("You have unsaved changes. Would you like to save them?", "Unsaved Changes", System.Windows.MessageBoxButton.YesNoCancel);
+                if (result == System.Windows.MessageBoxResult.Yes)
+                {
+                    cevm.Save();
+                }
+                else if (result == System.Windows.MessageBoxResult.Cancel)
+                {
+                   CueList.SelectedItem = e.RemovedItems[0];
+                }
+            }
+        }
+
 
         public void MainWindow_Loaded(object? sender, EventArgs e)
         {
             WindowState = GlobalSettings.Instance.WindowState;
+            PlaybackBar.DataContext = (DataContext as MainWindowViewModel)!.CuePlaybackViewModel;
         }
-        public void MainWindow_MouseDown(object sender, MouseButtonEventArgs e)
+        public void MainWindow_MouseDown(object? sender, PointerPressedEventArgs e)
         {
-            Keyboard.ClearFocus();
+            TopLevel.GetTopLevel(this)?.FocusManager?.ClearFocus();
             Activate();
             Focus();
         }
@@ -69,26 +88,26 @@ namespace DeLight.Views
             GlobalSettings.Instance.WindowState = WindowState;
             GlobalSettings.Save();
             base.OnClosed(e);
-            (DataContext as MainWindowViewModel)?.HideVideoPlayback();
+            (DataContext as MainWindowViewModel)?.HideVideoWindow();
 
         }
         protected void OnKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
 
         {
             base.OnKeyDown(e);
-            if (e.Key == Avalonia.Input.Key.Escape && ((DataContext as MainWindowViewModel)?.VideoIsVisible ?? false) && Keyboard.FocusedElement is not TextBox)
+            if (e.Key == Avalonia.Input.Key.Escape && Keyboard.FocusedElement is not TextBox)
             {
                 count++;
                 if (count == 2)
                 {
-                    (DataContext as MainWindowViewModel)?.HideVideoPlayback();
+                    (DataContext as MainWindowViewModel)?.HideVideoWindow();
                     count = 0;
                 }
                 e.Handled = true;
             }
             else if (e.Key == Avalonia.Input.Key.Space && DataContext is MainWindowViewModel vm && Keyboard.FocusedElement is not TextBox)
             {
-                vm.PlayNextCue();
+                vm.PlayCue();
                 e.Handled = true;
             }
             else
@@ -110,7 +129,7 @@ namespace DeLight.Views
         {
             if (DataContext is MainWindowViewModel vm)
             {
-                vm.UpdateWindowSize();
+                vm.UpdateWindowSize(Bounds.Height);
             }
         }
     }
