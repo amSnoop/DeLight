@@ -7,9 +7,9 @@ namespace DeLight.ViewModels
     public partial class CueViewModel : ObservableObject
     {
 
-        private Cue cue;
+        private Cue? cue;
 
-        public Cue Cue
+        public Cue? Cue
         {
             get => cue;
             set
@@ -19,10 +19,12 @@ namespace DeLight.ViewModels
                 SetProperty(ref cue, value);
             }
         }
-
-        public CueViewModel(Cue cue)
+        public CueViewModel()
         {
-            Cue = cue;
+        }
+        public CueViewModel(Cue? cue)
+        {
+            this.cue = cue;
         }
 
         public virtual void OnCuePropertyChanged(object? sender, PropertyChangedEventArgs e)

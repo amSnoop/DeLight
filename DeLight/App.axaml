@@ -13,7 +13,7 @@
 		<SolidColorBrush x:Key="TextDisabled" Color="#444" />
 		<SolidColorBrush x:Key="ForegroundBrush" Color="White" />
 		<SolidColorBrush x:Key="TextBaseBrush" Color="White" />
-		<SolidColorBrush x:Key="TextAltBrush" Color="Wheat" />
+		<SolidColorBrush x:Key="TextAltBrush" Color="#D345A4" />
 		<SolidColorBrush x:Key="AccentBrush" Color="#45a4d3" />
 		<SolidColorBrush x:Key="AccentBrushDark" Color="#468" />
 		<SolidColorBrush x:Key="AccentBrushMed" Color="#579" />
@@ -64,6 +64,12 @@
 		<Style Selector="TextBlock.SubTitle">
 			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>
 			<Setter Property="FontSize" Value="{Binding $parent[Window].DataContext.SubtitleFontSize}" />
+			<Setter Property="Foreground" Value="{StaticResource TextBaseBrush}" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+		</Style>
+		<Style Selector="TextBlock.CueListContent">
+			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>
+			<Setter Property="FontSize" Value="{Binding $parent[Window].DataContext.CueFontSize}" />
 			<Setter Property="Foreground" Value="{StaticResource TextBaseBrush}" />
 			<Setter Property="HorizontalAlignment" Value="Center" />
 		</Style>

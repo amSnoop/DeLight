@@ -1,6 +1,7 @@
 ﻿using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DeLight.Models.Files;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -57,14 +58,8 @@ namespace DeLight.Models
         [ObservableProperty]
         private LightFile lightScene;
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(BGColor))]
-        private bool ready;
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(BGColor))]
-        private bool disabled;//TODO: Implement this
+        private bool disabled;
 
-
-        public SolidColorBrush BGColor => new(!Ready ? Color.Parse("#56211d") : Colors.Transparent);//TODO: Make a ViewModel for this
 
         public Cue()
         {
@@ -125,6 +120,55 @@ namespace DeLight.Models
             }
         }
 
-        //TODO: Make a class that handles editing a cue using a temp cue and temp media file types
+        public static int CompareCues(string cue1, string cue2)
+        {
+            // Splitting numeric and alphabetical portions of the strings
+            var match1 = CueNumberRegex().Match(cue1);
+            var match2 = CueNumberRegex().Match(cue2);
+
+            if (match1.Success && match2.Success)
+            {
+                int number1 = int.Parse(match1.Groups[1].Value);
+                int number2 = int.Parse(match2.Groups[1].Value);
+
+                int comparison = number1.CompareTo(number2);
+                if (comparison == 0) // If numbers are equal, compare the letters
+                {
+                    return string.Compare(match1.Groups[2].Value, match2.Groups[2].Value, StringComparison.OrdinalIgnoreCase);
+                }
+                return comparison;
+            }
+            throw new FormatException("The cues are not in the expected format.");
+        }
+        public int FetchNum()
+        {
+            return int.Parse(CueNumberRegex().Match(Number).Groups[1].Value);
+        }
+        public char FetchAlpha()
+        {
+            return CueNumberRegex().Match(Number).Groups[2].Value[0];
+        }
+        // Overloading the < operator
+        public static bool operator <(Cue c1, Cue c2)
+        {
+            return CompareCues(c1.Number, c2.Number) < 0;
+        }
+
+        // Overloading the <= operator
+        public static bool operator <=(Cue c1, Cue c2)
+        {
+            return CompareCues(c1.Number, c2.Number) <= 0;
+        }
+        public static bool operator >(Cue c1, Cue c2)
+        {
+            return CompareCues(c1.Number, c2.Number) > 0;
+        }
+        public static bool operator >=(Cue c1, Cue c2)
+        {
+            return CompareCues(c1.Number, c2.Number) >= 0;
+        }
+
+        [System.Text.RegularExpressions.GeneratedRegex("(\\d+)([a-z]*)")]
+        private static partial System.Text.RegularExpressions.Regex CueNumberRegex();
     }
 }

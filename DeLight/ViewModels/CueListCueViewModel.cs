@@ -1,11 +1,33 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DeLight.Models;
 using DeLight.Models.Files;
+using System;
 using System.ComponentModel;
 using System.Linq;
 
 namespace DeLight.ViewModels
 {
+    public class CueListContextMenuButtonClickedEventArgs : EventArgs
+    {
+        public enum CueListContextMenuButton
+        {
+            Edit,
+            Delete,
+            Duplicate,
+            Disable,
+            Move
+        }
+
+        public CueListContextMenuButton Action { get; set; }
+        
+        public CueListContextMenuButtonClickedEventArgs(CueListContextMenuButton action)
+        {
+            Action = action;
+        }
+    }
+
+
     public partial class CueListCueViewModel : CueViewModel
     {
 
@@ -16,33 +38,60 @@ namespace DeLight.ViewModels
         [ObservableProperty]
         private bool error;
 
-        public bool Disabled => Cue.Disabled;
+        public event EventHandler<CueListContextMenuButtonClickedEventArgs>? ButtonClicked;
 
-        public CueListCueViewModel(Cue cue) : base(cue)
+        public bool Disabled => Cue?.Disabled ?? true;
+
+        public CueListCueViewModel(Cue? cue) : base(cue)
         {
-            Cue.PropertyChanged += OnCuePropertyChanged;
+            if (Cue != null)
+                Cue.PropertyChanged += OnCuePropertyChanged;
             Error = CheckCueErrorState();
         }
 
+        [RelayCommand]
+        public void EditButtonClicked()
+        {
+            ButtonClicked?.Invoke(this, new(CueListContextMenuButtonClickedEventArgs.CueListContextMenuButton.Edit));
+
+        }
+        [RelayCommand]
+        public void DeleteButtonClicked()
+        {
+            ButtonClicked?.Invoke(this, new(CueListContextMenuButtonClickedEventArgs.CueListContextMenuButton.Delete));
+        }
+        [RelayCommand]
+        public void DuplicateButtonClicked()
+        {
+            ButtonClicked?.Invoke(this, new(CueListContextMenuButtonClickedEventArgs.CueListContextMenuButton.Duplicate));
+        }
+        [RelayCommand]
+        public void DisableButtonClicked()
+        {
+            ButtonClicked?.Invoke(this, new(CueListContextMenuButtonClickedEventArgs.CueListContextMenuButton.Disable));
+            if(Cue != null)
+                Cue.Disabled = !Cue.Disabled;
+        }
+        [RelayCommand]
+        public void MoveButtonClicked()
+        {
+            ButtonClicked?.Invoke(this, new(CueListContextMenuButtonClickedEventArgs.CueListContextMenuButton.Move));
+        }
 
         private bool CheckCueErrorState()
         {
-            if (Cue.LightScene.ErrorState != FileErrorState.None)
+            if (Cue?.LightScene.ErrorState != FileErrorState.None)
                 return true;
             foreach (var file in Cue.ScreenFiles.Values.ToList())
                 if (file.ErrorState != FileErrorState.None)
                     return true;
             return false;
         }
-        private void OnCuePropertyChanged(object? sender, PropertyChangedEventArgs e)
+        public override void OnCuePropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (sender is Cue)
-            {
+            if (sender == Cue)
                 if (e.PropertyName == nameof(Cue.Disabled))
-                {
                     OnPropertyChanged(nameof(Disabled));
-                }
-            }
         }
     }
 }

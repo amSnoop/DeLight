@@ -18,7 +18,7 @@
 		</Grid.RowDefinitions>
 		<Border Grid.ColumnSpan="3" Grid.RowSpan="3" Background="#000" Opacity="0.6">
 		</Border>
-		<Border Grid.Column="1" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#050505" >
+		<Border Grid.Column="1" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#050505" x:Name="ActualControl">
 			<Grid x:Name="CueSettings">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="*" MinWidth="10"/>
@@ -28,13 +28,15 @@
 				<Grid.RowDefinitions>
 					<RowDefinition Height=".1*" MinHeight="20"/>
 					<RowDefinition Height="Auto" />
-					<RowDefinition Height="*" MinHeight="220"/>
+					<RowDefinition Height="1.2*" MinHeight="325"/>
 					<RowDefinition Height="*" />
+					<RowDefinition Height="Auto" />
 					<RowDefinition Height=".15*" MinHeight="20"/>
 				</Grid.RowDefinitions>
 				<TextBlock Grid.Row="1" Grid.Column="1" Text="Cue Editor" Classes="Title"/>
 				<Grid Grid.Row="2" Grid.Column="1" x:Name="DefaultCueDisplay">
 					<Grid.RowDefinitions>
+						<RowDefinition Height="*" />
 						<RowDefinition Height="*" />
 						<RowDefinition Height="*" />
 						<RowDefinition Height="*" />
@@ -50,37 +52,39 @@
 						<ColumnDefinition Width="*" />
 					</Grid.ColumnDefinitions>
 
-					<TextBlock Grid.Row="1" Text="Cue Number:" VerticalAlignment="Center"/>
-					<TextBox Grid.Row="1" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Number}" Margin="0"/>
+					<TextBlock Grid.Row="1" Text="Cue Number:" VerticalAlignment="Center" ToolTip.Tip="Duplicate numbers will give priority to this cue, and other cues will rearrange to compensate."/>
+					<TextBox Grid.Row="1" Grid.Column="2" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Number}" Margin="0"/>
+					<TextBlock Grid.Row="2" Text="Use Letters for Collisions:" VerticalAlignment="Center" Grid.ColumnSpan="2" ToolTip.Tip="Should cue number duplications be avoided by incrementing whole numbers or by adding a letter to the end of the number? (e.g. 1, 2, 3 vs 1, 1a, 1b)"/>
+					<CheckBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding UseLetters}" HorizontalAlignment="Right" Margin="0" Padding="0"/>
 
-					<TextBlock Grid.Row="2" Text="Description:" VerticalAlignment="Center"/>
-					<TextBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding Note}" />
+					<TextBlock Grid.Row="3" Text="Description:" VerticalAlignment="Center"/>
+					<TextBox Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding Note}" />
 
-					<TextBlock Grid.Row="3" Text="Fade In:" VerticalAlignment="Center"/>
-					<TextBox Grid.Row="3" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding FadeInTime}" />
+					<TextBlock Grid.Row="4" Text="Fade In:" VerticalAlignment="Center"/>
+					<TextBox Grid.Row="4" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding FadeInTime}" />
 
-					<TextBlock Grid.Row="4" Text="Fade Out:" VerticalAlignment="Center"/>
-					<TextBox Grid.Row="4" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding FadeOutTime}" />
+					<TextBlock Grid.Row="5" Text="Fade Out:" VerticalAlignment="Center"/>
+					<TextBox Grid.Row="5" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding FadeOutTime}" />
 
-					<TextBlock Grid.Row="5" Text="Duration:" VerticalAlignment="Center"/>
-					<TextBox Grid.Row="5" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Duration}" />
+					<TextBlock Grid.Row="6" Text="Duration:" VerticalAlignment="Center" ToolTip.Tip="A non-zero value will override the source files' expected durations. 0 is infinite."/>
+					<TextBox Grid.Row="6" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Duration}" />
 
-					<TextBlock Grid.Row="6" Text="Volume:" VerticalAlignment="Center"/>
-					<Grid Grid.Row="6" Grid.Column="1" ColumnDefinitions="20*, *,Auto">
+					<TextBlock Grid.Row="7" Text="Volume:" VerticalAlignment="Center"/>
+					<Grid Grid.Row="7" Grid.Column="1" ColumnDefinitions="20*, *,Auto" VerticalAlignment="Center">
 						<Slider HorizontalAlignment="Stretch" VerticalAlignment="Center" Maximum="1" Minimum="0" TickFrequency="0.01" Value="{Binding Volume}"/>
 						<TextBox Grid.Column="2" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Volume, Mode=TwoWay}" />
 					</Grid>
-					<TextBlock Grid.Row="7" Text="Fade In Mode:" VerticalAlignment="Center"/>
-					<ComboBox Grid.Row="7" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" SelectedIndex="{Binding FadeType, Mode=TwoWay}" ItemsSource="{Binding FadeTypeStrings}" />
+					<TextBlock Grid.Row="8" Text="Fade In Mode:" VerticalAlignment="Center" ToolTip.Tip="Not yet implemented"/>
+					<ComboBox Grid.Row="8" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" SelectedIndex="{Binding FadeType, Mode=TwoWay}" ItemsSource="{Binding FadeTypeStrings}" IsEnabled="False"/>
 
-					<TextBlock Grid.Row="8" Text="Cue Ending Behavior:" VerticalAlignment="Center"/>
-					<ComboBox Grid.Row="8" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"  SelectedIndex="{Binding CueEndAction, Mode=TwoWay}" ItemsSource="{Binding EndActionStrings}" />
+					<TextBlock Grid.Row="9" Text="Cue Ending Behavior:" VerticalAlignment="Center"/>
+					<ComboBox Grid.Row="9" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"  SelectedIndex="{Binding CueEndAction, Mode=TwoWay}" ItemsSource="{Binding EndActionStrings}" />
 				</Grid>
 				<ScrollViewer Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
 					<ItemsControl Background="#090909" ItemsSource="{Binding Files}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
-								<Expander BorderBrush="White" Header="{Binding Header}" Foreground="Wheat" HorizontalAlignment="Stretch">
+								<Expander BorderBrush="White" Header="{Binding Header}" Foreground="#D345A4" HorizontalAlignment="Stretch">
 									<Expander.Resources>
 									</Expander.Resources>
 									<Grid Grid.Row="2" Grid.Column="1" x:Name="DefaultCueDisplay">
@@ -129,6 +133,14 @@
 						</ItemsControl.ItemTemplate>
 					</ItemsControl>
 				</ScrollViewer>
+				<Grid Grid.Row="4" Grid.Column="1" ColumnDefinitions="*,*">
+					<Button HorizontalAlignment="Center" Command="{Binding Save}">
+						<TextBlock Text="Save" Classes="SubTitle"/>
+					</Button>
+					<Button Grid.Column="1" HorizontalAlignment="Center" Margin="0,10" Command="{Binding Cancel}">
+						<TextBlock Text="Cancel" Classes="SubTitle"/>
+					</Button>
+				</Grid>
 			</Grid>
 		</Border>
 	</Grid>

@@ -69,8 +69,6 @@ namespace DeLight.Utilities
 
         public BlackoutScreenFile File { get; }
 
-        private DispatcherTimer _opacityDebugTimer;
-
         CueFile IRunnableVisualCue.File => File;
 
         public event EventHandler? FadedIn;
@@ -91,30 +89,13 @@ namespace DeLight.Utilities
                 storyboard.Stop();
             storyboards.Clear();
         }
-        private void StartOpacityDebugging()
-        {
-            _opacityDebugTimer = new DispatcherTimer();
-            _opacityDebugTimer.Interval = TimeSpan.FromMilliseconds(50); // Adjust as necessary
-            _opacityDebugTimer.Tick += (s, e) =>
-            {
-                Debug.WriteLine($"Opacity: {this.Opacity}");
-            };
-            _opacityDebugTimer.Start();
-        }
-
-        private void StopOpacityDebugging()
-        {
-            _opacityDebugTimer?.Stop();
-        }
 
         public void FadeIn(double duration = -1)
         {
-            StartOpacityDebugging();
             DoubleAnimation fadeIn = new(1, TimeSpan.FromSeconds(duration == -1 ? File.FadeInDuration : duration));
             fadeIn.Completed += (s, e) =>
             {
                 FadedIn?.Invoke(this, EventArgs.Empty);
-                StopOpacityDebugging();
             };
             BeginAnimation(fadeIn);
         }

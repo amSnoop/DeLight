@@ -117,8 +117,8 @@ namespace DeLight.Models
             });
             show.Cues.Add(new Cue()
             {
-                Number = "8",
-                Note = "Except the ones who are dead.",
+                Number = "+",
+                Note = "",
             });
             return show;
         }

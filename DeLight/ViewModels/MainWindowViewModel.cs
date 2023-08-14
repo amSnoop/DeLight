@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using DeLight.Utilities;
 using System.Diagnostics;
 using System.Collections.ObjectModel;
+using DeLight.Models;
 
 namespace DeLight.ViewModels
 {
@@ -24,9 +25,9 @@ namespace DeLight.ViewModels
         [ObservableProperty]
         private double bodyFontSize = 12;
         [ObservableProperty]
-        private double cueFontSize = 14;
+        private double cueFontSize = 16;
         [ObservableProperty]
-        private double subtitleFontSize = 14;
+        private double subtitleFontSize = 16;
         [ObservableProperty]
         private double titleFontSize = 30;
 
@@ -38,7 +39,7 @@ namespace DeLight.ViewModels
             double scaleFactor = 1 + Math.Log(height / 720.0);
             double maxFontSize = 25;
             double fontSize = Math.Max(Math.Min(baseFontSize * scaleFactor, maxFontSize), baseFontSize);
-            double subTitleFontFactor = 1.2;
+            double subTitleFontFactor = 1.5;
             double titleFontFactor = 3;
             double cueFontFactor = 1.2;
             BodyFontSize = fontSize;
@@ -63,6 +64,7 @@ namespace DeLight.ViewModels
 
         public MainWindowViewModel(ShowRunner runner)
         {
+            _screenObjects = new();
             showRunner = runner;
             ConfigureMonitorDisplay();
             Cues = new();
@@ -139,16 +141,12 @@ namespace DeLight.ViewModels
             var screen = selectedScreen;
             _screenObjects = Screen.AllScreens.ToList();
             Monitors = _screenObjects.Select((s, i) => $"Monitor {i + 1}: {s.Bounds.Width}x{s.Bounds.Height}").ToList();
-            try
-            {
+            if (screen != null)
                 SelectedMonitor = Monitors[_screenObjects.IndexOf(screen)];
-            }
-            catch (Exception)
-            {
+            else
                 SelectedMonitor = Monitors.FirstOrDefault() ?? "";
-                Debug.WriteLine("Monitor not found");
-            }
         }
+
         partial void OnSelectedMonitorChanged(string value)
         {
             if (value == null)
@@ -158,6 +156,7 @@ namespace DeLight.ViewModels
             }
             var screen = _screenObjects[Monitors.IndexOf(SelectedMonitor)];
             showRunner.SetVideoScreen(screen);
+            selectedScreen = screen;
         }
 
         #endregion
@@ -168,7 +167,7 @@ namespace DeLight.ViewModels
             var curCue = Cues.FirstOrDefault(c => c.Cue == showRunner?.ActiveCue?.Cue);
             if (curCue != null)
                 curCue.Active = false;
-            if (SelectedCue != null)
+            if (SelectedCue != null && SelectedCue.Cue != null)
             {
                 showRunner.Play(SelectedCue.Cue);
                 SelectedCue.Active = true;
@@ -211,6 +210,18 @@ namespace DeLight.ViewModels
         public void ShowVideoWindow()
         {
             showRunner.ShowVideoWindow();
+        }
+
+        public void DeleteCue(Cue? cue)
+        {
+            if (cue != null)
+                showRunner.DeleteCue(cue);
+        }
+
+        public void InsertCue(Cue? cue, bool useLetters)
+        {
+            if (cue != null)
+                showRunner.AddCue(cue, useLetters);
         }
     }
 

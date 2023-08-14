@@ -1,4 +1,7 @@
-﻿using Avalonia.Metadata;
+﻿using Avalonia.Controls;
+using Avalonia.Controls.Platform;
+using Avalonia.Metadata;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DeLight.Models;
 using DeLight.Models.Files;
@@ -40,7 +43,7 @@ namespace DeLight.Utilities
         [ObservableProperty]
         private CueRunner? activeCue;
         [ObservableProperty]
-        private VideoWindow videoWindow;//REMOVE THIS LATER. WILL MAKE SOME KIND OF VIDEO WINDOW MANAGER
+        private VideoWindow? videoWindow;//REMOVE THIS LATER. WILL MAKE SOME KIND OF VIDEO WINDOW MANAGER
 
         public event EventHandler? OnLoaded;
 
@@ -50,7 +53,15 @@ namespace DeLight.Utilities
         {
             Show = show;
             oldCues = new();
-            VideoWindow = new VideoWindow();
+            if (!Design.IsDesignMode)
+                VideoWindow = new VideoWindow();
+            else
+            {
+                Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    VideoWindow = new VideoWindow();
+                });
+            }
         }
 
         public void PrepareCues()
@@ -67,7 +78,7 @@ namespace DeLight.Utilities
         }
 
         public void Play(Cue cue)
-         {
+        {
             ShowVideoWindow();
             CueRunner newCueRunner = new(cue, VideoWindow);
             ActiveCue = newCueRunner;
@@ -109,12 +120,62 @@ namespace DeLight.Utilities
 
 
 
-        public void AddCue(Cue cue)
+        public void AddCue(Cue cue, bool useLetters)
         {
-            Show.Cues.Add(cue);
-            CueChanged?.Invoke(this, new CueChangedEventArgs(cue, CueChangedEventArgs.ChangeType.Added, Show.Cues.Count - 1));//TODO: insert into list based on Cue Number
+            int insertIndex = Show.Cues.FindIndex(existingCue => existingCue >= cue);
+            var existingCue = Show.Cues[insertIndex];
+            if (insertIndex == -1)
+            {
+                Show.Cues.Add(cue);
+                CueChanged?.Invoke(this, new CueChangedEventArgs(cue, CueChangedEventArgs.ChangeType.Added, Show.Cues.Count - 1));
+                return;
+            }
+            Show.Cues.Insert(insertIndex, cue);
+            if (useLetters)
+            {
+                if (existingCue.Number == cue.Number)
+                {
+                    int nextIdx = insertIndex + 1;
+                    Cue nextCue = Show.Cues[nextIdx];
+                    while (nextIdx < Show.Cues.Count && nextCue.Number == existingCue.Number)
+                    {
+                        if (useLetters)
+                            nextCue.Number = nextCue.FetchNum() + "" + (char)Math.Max(nextCue.FetchAlpha() + 1, 'a');
+                        if (++nextIdx < Show.Cues.Count && nextCue.Number == Show.Cues[nextIdx].Number)
+                        {
+                            existingCue = nextCue;
+                            nextCue = Show.Cues[nextIdx];
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            else//if not using letters, just increment the numbers
+            {
+                if(existingCue.FetchNum() == cue.FetchNum())
+                {
+                    int nextIdx = insertIndex + 1;
+                    Cue nextCue = Show.Cues[nextIdx];
+                    while (nextIdx < Show.Cues.Count && nextCue.FetchNum() == existingCue.FetchNum())
+                    {
+                        nextCue.Number = nextCue.FetchNum() + 1 + "" + nextCue.FetchAlpha();
+                        if (++nextIdx < Show.Cues.Count && nextCue.FetchNum() == Show.Cues[nextIdx].FetchNum())
+                        {
+                            existingCue = nextCue;
+                            nextCue = Show.Cues[nextIdx];
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            CueChanged?.Invoke(this, new CueChangedEventArgs(cue, CueChangedEventArgs.ChangeType.Added, insertIndex));
         }
-
         public void DeleteCue(Cue cue)
         {
             if (ActiveCue?.Cue == cue)
@@ -125,8 +186,11 @@ namespace DeLight.Utilities
             else
                 foreach (var cueRunner in OldCues.ToList())
                 {
-                    cueRunner.Stop();
-                    OldCues.Remove(cueRunner);
+                    if (cueRunner.Cue == cue)
+                    {
+                        cueRunner.Stop();
+                        OldCues.Remove(cueRunner);
+                    }
                 }
             Show.Cues.Remove(cue);
             CueChanged?.Invoke(this, new CueChangedEventArgs(cue, CueChangedEventArgs.ChangeType.Deleted, 0));

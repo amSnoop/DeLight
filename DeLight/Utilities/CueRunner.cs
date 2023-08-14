@@ -87,7 +87,7 @@ namespace DeLight.Utilities
 
         public event EventHandler? FadedIn, FadedOut;
         public Cue Cue { get; set; }
-        public VideoWindow VideoWindow { get; set; }
+        public VideoWindow? VideoWindow { get; set; }
 
         //insert list of IRunnableVisualCues here
         public List<IRunnableVisualCue> VisualCues { get; set; } = new();
@@ -98,7 +98,7 @@ namespace DeLight.Utilities
         public double RealDuration { get; set; } = 0;
 
 
-        public CueRunner(Cue cue, VideoWindow videoWindow)
+        public CueRunner(Cue cue, VideoWindow? videoWindow)
         {
             Cue = cue;
             VideoWindow = videoWindow;
@@ -122,7 +122,7 @@ namespace DeLight.Utilities
                 else
                     throw new Exception("Unknown VisualCue type: " + sf.GetType());
                 DetermineFileEndingEvent(cme);
-                VideoWindow.Container.Children.Add(cme.GetUIElement());//can't just add an IRunnableVisualCue to the layout
+                VideoWindow?.Container.Children.Add(cme.GetUIElement());//can't just add an IRunnableVisualCue to the layout
                 VisualCues.Add(cme);
             }
             FadedOut += OnFadedOut;
@@ -199,7 +199,7 @@ namespace DeLight.Utilities
             {
                 vc.Stop();
                 if (vc is IRunnableScreenCue cme)
-                    VideoWindow.Container.Children.Remove(cme.GetUIElement());
+                    VideoWindow?.Container.Children.Remove(cme.GetUIElement());
             }
         }
 
