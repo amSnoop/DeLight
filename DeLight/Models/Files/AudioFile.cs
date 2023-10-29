@@ -2,7 +2,7 @@
 
 namespace DeLight.Models.Files
 {
-    //TODO: Implement
+    //TODO: Implement AudioFile
     public partial class AudioFile : CueFile
     {
         [ObservableProperty]

@@ -7,18 +7,18 @@ namespace DeLight.Models
 {
     public interface IRunnableVisualCue
     {
-        CueFile File { get; }
-        double Opacity { get; set; }
+        public CueFile File { get; }
+        public double Opacity { get; }
 
-        bool IsFadingOut { get; }
-        event EventHandler? FadedIn, FadedOut, PlaybackEnded;
+        public bool IsFadingOut { get; }
+        public event EventHandler? FadedIn, FadedOut, PlaybackEnded;
 
         public double? Duration { get; }
 
         public void Play();
         public void Pause();
         public void Stop();
-        public void SeekTo(double time);
+        public void SeekTo(double time, bool play);
         public void FadeIn(double duration = -1);
         public void FadeOut(double duration = -1);
         public void Restart();
@@ -26,8 +26,11 @@ namespace DeLight.Models
 
         public Task LoadAsync();
 
-    }
+        //Every tick, the CueRunner will call this method on every IRunnableVisualCue. Used only for FadeOut animations. FadeIn is handled by SeekTo
+        public void SendTimeUpdate(double time);
 
+    }
+    //Exists only because IRunnableVisualCue is not a UIElement
     public interface IRunnableScreenCue : IRunnableVisualCue {
         public UIElement GetUIElement();
     }

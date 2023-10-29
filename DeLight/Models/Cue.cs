@@ -1,5 +1,4 @@
-﻿using Avalonia.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using DeLight.Models.Files;
 using System;
 using System.Collections.Generic;
@@ -45,12 +44,12 @@ namespace DeLight.Models
         private double fadeInTime;
         [ObservableProperty]
         private double fadeOutTime;
-        [ObservableProperty]
-        private double volume;//0 to 1 TODO: Implement this
+        [ObservableProperty]//TODO: Implement Volume
+        private double volume;//0 to 1 
         [ObservableProperty]
         private double duration;
         [ObservableProperty]
-        private FadeType fadeType;//TODO: Implement this
+        private FadeType fadeType;//TODO: Implement FadeType
         [ObservableProperty]
         private EndAction cueEndAction;
         [ObservableProperty]

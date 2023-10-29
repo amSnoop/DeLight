@@ -1,6 +1,7 @@
 ﻿using Avalonia.Threading;
 using DeLight.Models;
 using DeLight.Models.Files;
+using DeLight.Utilities.LightingOutput;
 using DeLight.Views;
 using System;
 using System.Collections.Generic;
@@ -10,74 +11,17 @@ using System.Timers;
 
 namespace DeLight.Utilities
 {
-
-    public class Light : IRunnableVisualCue
-    {
-        public double? Duration =>/* Math.Round(new Random().NextDouble() * 10, 1)*/ 1;
-        public LightFile File { get; }
-
-        CueFile IRunnableVisualCue.File => File;
-
-        public Light(LightFile lf)
-        {
-            File = lf;
-        }
-        public double Opacity { get; set; }
-
-        public bool IsFadingOut => false;
-
-        public event EventHandler? FadedIn;
-        public event EventHandler? FadedOut;
-        public event EventHandler? PlaybackEnded;
-
-        public void ClearCurrentAnimations()
-        {
-            Console.WriteLine("ClearCurrentAnimations() called on Light");
-        }
-
-        public void FadeIn(double duration = -1)
-        {
-            Console.WriteLine("FadeIn() called on Light");
-            FadedIn?.Invoke(this, EventArgs.Empty);
-        }
-
-        public void FadeOut(double duration = -1)
-        {
-            Console.WriteLine("FadeOut() called on Light");
-            FadedOut?.Invoke(this, EventArgs.Empty);
-        }
-
-        public Task LoadAsync()
-        {
-            return Task.CompletedTask;
-        }
-
-        public void Pause()
-        {
-            Console.WriteLine("Pause() called on Light");
-        }
-
-        public void Play()
-        {
-            Console.WriteLine("Play() called on Light");
-        }
-
-        public void SeekTo(double time)
-        {
-            Console.WriteLine("SeekTo() called on Light");
-        }
-
-        public void Stop()
-        {
-            Console.WriteLine("Stop() called on Light");
-        }
-
-        public void Restart()
-        {
-            Console.WriteLine("Restart() called on Light");
-        }
-    }
-
+    /*
+     * This class is responsible for running a cue. It handles the timing, fading, and playback of the cue.
+     * It is created by the ShowRunner when a new cue is started.
+     * It handles loading the cue's files, and creating the IRunnableVisualCue objects that are used to play the cue.
+     * 
+     * Multiple refactorings need to be done:
+     * 
+     * Pass off fade handling to the IRunnableVisualCue objects
+     *      Ideally, the CueRunner would just be a wrapper for the IRunnableVisualCue objects, and would just handle timing and looping. The IRunnableVisualCue objects would handle fading and playback.
+     * 
+     */
     public class CueRunner
     {
         private readonly double OPACITY_FULL = 1;//chatGPT doesn't like magic numbers, and GPT is my code reviewer, so here we are
@@ -95,7 +39,7 @@ namespace DeLight.Utilities
         public int LoopCount { get; set; } = 0;
         public int ElapsedTicks { get; set; } = 0;
 
-        public double RealDuration { get; set; } = 0;
+        public double RealDuration { get; set; } = 0;//
 
 
         public CueRunner(Cue cue, VideoWindow? videoWindow)
@@ -104,12 +48,11 @@ namespace DeLight.Utilities
             VideoWindow = videoWindow;
             Timer = new System.Timers.Timer(GlobalSettings.TickRate);
             Timer.Elapsed += Timer_Tick;
-            Light l = new(cue.LightScene);
+            LightCue l = new(cue.LightScene, cue.FadeType);
             VisualCues.Add(l);
             DetermineFileEndingEvent(l);
             foreach (var sf in cue.ScreenFiles.Values)
             {
-                //TODO: Add support for other types of cues
                 IRunnableScreenCue cme;
                 if (sf.ErrorState != FileErrorState.None)
                     cme = new BlackoutVisualCue(new() { FadeInDuration = sf.FadeInDuration });
@@ -122,7 +65,7 @@ namespace DeLight.Utilities
                 else
                     throw new Exception("Unknown VisualCue type: " + sf.GetType());
                 DetermineFileEndingEvent(cme);
-                VideoWindow?.Container.Children.Add(cme.GetUIElement());//can't just add an IRunnableVisualCue to the layout
+                VideoWindow?.Container.Children.Add(cme.GetUIElement());//can't just add an IRunnableScreenCue to the layout
                 VisualCues.Add(cme);
             }
             FadedOut += OnFadedOut;

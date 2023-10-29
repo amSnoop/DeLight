@@ -14,11 +14,6 @@ namespace DeLight.Views
     {
         private int count;
 
-        //private IDeviceNotifier usbDeviceNotifier;
-
-        private readonly int vendor_id = 0x1069;
-        private readonly int product_id = 0x1040;
-
         public MainWindow()
         {
             WindowState = WindowState.Normal;
@@ -32,8 +27,6 @@ namespace DeLight.Views
             ActiveInfoView.EditButtonClicked += Info_EditButtonClicked;
             SelectedInfoView.EditButtonClicked += Info_EditButtonClicked;
             AddCueButton.Click += CueListAddButtonClicked;
-            //usbDeviceNotifier = DeviceNotifier.OpenDeviceNotifier();
-            //usbDeviceNotifier.OnDeviceNotify += OnDeviceNotifyEvent;
             KeyDown += OnKeyDown;
             SizeChanged += MainWindow_OnSizeChanged;
             PointerPressed += MainWindow_MouseDown;
