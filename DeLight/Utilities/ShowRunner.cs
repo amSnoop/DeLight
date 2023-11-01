@@ -198,13 +198,13 @@ namespace DeLight.Utilities
 
         public void HideVideoWindow()
         {
-            VideoWindow.Hide();
+            VideoWindow?.Hide();
             Stop();
         }
 
         public void ShowVideoWindow()
         {
-            VideoWindow.Show();
+            VideoWindow?.Show();
         }
 
 
@@ -222,7 +222,7 @@ namespace DeLight.Utilities
         }
         public void SetVideoScreen(Screen screen)
         {
-            VideoWindow.SetScreen(screen);
+            VideoWindow?.SetScreen(screen);
         }
     }
 }

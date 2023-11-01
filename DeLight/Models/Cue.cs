@@ -145,7 +145,9 @@ namespace DeLight.Models
         }
         public char FetchAlpha()
         {
-            return CueNumberRegex().Match(Number).Groups[2].Value[0];
+            var x = CueNumberRegex().Match(Number).Groups[2].Value.FirstOrDefault();
+            if(x == default(char)) x = (char)('a' - 1);
+            return  x;
         }
         // Overloading the < operator
         public static bool operator <(Cue c1, Cue c2)
@@ -167,7 +169,7 @@ namespace DeLight.Models
             return CompareCues(c1.Number, c2.Number) >= 0;
         }
 
-        [System.Text.RegularExpressions.GeneratedRegex("(\\d+)([a-z]*)")]
+        [System.Text.RegularExpressions.GeneratedRegex("(\\d+)([a-zA-Z]*)")]
         private static partial System.Text.RegularExpressions.Regex CueNumberRegex();
     }
 }

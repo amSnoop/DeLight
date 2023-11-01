@@ -4,6 +4,7 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using DeLight.Models;
 using DeLight.Utilities;
+using DeLight.Utilities.LightingOutput;
 using DeLight.ViewModels;
 using DeLight.Views;
 
@@ -25,7 +26,7 @@ namespace DeLight
                 BindingPlugins.DataValidators.RemoveAt(0);
                 GlobalSettings.Load();
                 ShowRunner show = new(Show.Load(GlobalSettings.Instance.LastShowPath));
-
+                LightingController.Start();
                 desktop.MainWindow = new MainWindow() 
                 {
                     DataContext = new MainWindowViewModel(show)

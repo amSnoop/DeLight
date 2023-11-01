@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace DeLight.Utilities
@@ -46,20 +43,24 @@ namespace DeLight.Utilities
 
         public static List<Step> ReadSXPSceneFile(string filePath)
         {
+            if(!File.Exists(filePath))
+            {
+                Console.WriteLine($"Error: File {filePath} not found.");
+                return new();
+            }
             var frames = new List<Step>();
-
+            int elapsed = 0;
             XDocument xDoc = XDocument.Load(filePath);
 
             foreach (var step in xDoc.Descendants("Step"))
             {
-                byte?[] dmxValues = new byte?[512];  // Assuming a full universe of DMX512, initialized with all null values
-
+                List<Channel> channels = new();
                 if (!int.TryParse(step.Attribute("length")?.Value, out int stepLength))
                 {
                     Console.WriteLine($"Error: Couldn't parse 'length' attribute in Step. Skipping this Step.");
                     continue;
                 }
-
+                elapsed += stepLength;
                 foreach (var fixture in step.Descendants("Fixture"))
                 {
                     if (!int.TryParse(fixture.Attribute("id")?.Value, out int fixtureId))
@@ -76,22 +77,29 @@ namespace DeLight.Utilities
 
                     foreach (var channel in fixture.Descendants("Channel"))
                     {
-
                         if (!int.TryParse(channel.Attribute("index")?.Value, out int channelIndex) ||
-                            !byte.TryParse(channel.Attribute("value")?.Value, out byte value))
+                            !byte.TryParse(channel.Attribute("value")?.Value, out byte value) ||
+                            !byte.TryParse(channel.Attribute("fade")?.Value, out byte fade) ||
+                            channel.Attribute("name")?.Value is not string name)
                         {
-                            Console.WriteLine($"Error: Couldn't parse 'index' or 'value' attribute in Channel. Skipping this Channel.");
+                            Console.WriteLine($"Error: Couldn't parse 'index', 'value', or 'fade' attribute in Channel. Skipping this Channel.");
                             continue;
                         }
 
-                        if ((fixtureAddress + channelIndex) < 512) // Checking to avoid index out of range
+                        if ((fixtureAddress + channelIndex - 1) < 512) // Checking to avoid index out of range, also - 1 because DMX channels start at 1
                         {
-                            dmxValues[fixtureAddress + channelIndex] = value;
+                            channels.Add(new()
+                            {
+                                Value = value,
+                                Index = fixtureAddress + channelIndex - 1,
+                                Fade = fade == 1,
+                                IsDimmer = name.ToLower().Contains("dimmer") || name.ToLower().Contains("par_can")
+                            });
                         }
                     }
                 }
 
-                frames.Add(new(dmxValues, stepLength));
+                frames.Add(new(channels, stepLength, elapsed));
             }
 
             return frames;

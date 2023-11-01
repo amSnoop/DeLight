@@ -19,14 +19,14 @@ namespace DeLight.Models
         public void Pause();
         public void Stop();
         public void SeekTo(double time, bool play);
-        public void FadeIn(double duration = -1);
-        public void FadeOut(double duration = -1);
+        public void FadeIn(double startTime);
+        public void FadeOut(double startTime);
         public void Restart();
         public void ClearCurrentAnimations();
 
         public Task LoadAsync();
 
-        //Every tick, the CueRunner will call this method on every IRunnableVisualCue. Used only for FadeOut animations. FadeIn is handled by SeekTo
+        //Every tick, the CueRunner will call this method on every IRunnableVisualCue. Used only for FadeOut animations. FadeIn is handled by SeekTo.
         public void SendTimeUpdate(double time);
 
     }

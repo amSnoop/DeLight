@@ -15,8 +15,8 @@ namespace DeLight.Utilities
 {
     public class BaseMediaElement : MediaElement, IRunnableScreenCue
     {
-        private TaskCompletionSource<bool> tcs = new();
-        private List<Storyboard> storyboards = new();
+        private readonly TaskCompletionSource<bool> tcs = new();
+        private readonly List<Storyboard> storyboards = new();
 
         protected double? fadeOutStartTime;
 
@@ -71,7 +71,7 @@ namespace DeLight.Utilities
             Stop();
 
             await tcs.Task;
-            Duration = NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : null;
+            Duration ??= NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : null;
             if (Duration != null)
             {
                 if (File.EndAction == EndAction.FadeBeforeEnd)
@@ -88,6 +88,8 @@ namespace DeLight.Utilities
 
         public virtual void Restart() { }
         public virtual void SeekTo(double time, bool p) { }
+
+        //Will fade in the video with the remaining duration of the fade in. Also plays the video.
         public void FadeIn(double startTime)
         {
             ClearCurrentAnimations();
@@ -97,6 +99,7 @@ namespace DeLight.Utilities
             BeginAnimation(fadeIn);
         }
 
+        //Will fade out the video with the remaining duration of the fade out. Also plays the video.
         public void FadeOut(double startTime)
         {
             ClearCurrentAnimations();
@@ -109,6 +112,8 @@ namespace DeLight.Utilities
         }
 
         public virtual void SendTimeUpdate(double time) { }
+
+        //Only plays hte video. not from start, no seeking, just plays.
         public new virtual void Play()
         {
             foreach (Storyboard storyboard in storyboards)
@@ -121,6 +126,8 @@ namespace DeLight.Utilities
                 storyboard.Pause();
             base.Pause();
         }
+
+        //does whatever the base stop does ig
         public new virtual void Stop()
         {
             foreach (Storyboard storyboard in storyboards)
@@ -157,7 +164,7 @@ namespace DeLight.Utilities
             if (Duration == null)
                 throw new NullReferenceException("Attempted to fetch opacity on a file with null duration.");
 
-            double opacity = 0;
+            double opacity;
 
             if (time < File.FadeInDuration)
                 opacity = time / File.FadeInDuration;

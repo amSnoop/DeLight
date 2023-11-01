@@ -12,8 +12,8 @@ namespace DeLight.Utilities
     public abstract class CustomMediaElement : MediaElement, IRunnableScreenCue
     {
 
-        private TaskCompletionSource<bool> tcs = new();
-        private List<Storyboard> storyboards = new();
+        private readonly TaskCompletionSource<bool> tcs = new();
+        private readonly List<Storyboard> storyboards = new();
 
         public event EventHandler? FadedIn, FadedOut, PlaybackEnded;
 

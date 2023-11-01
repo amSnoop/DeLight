@@ -38,7 +38,7 @@ namespace DeLight.Utilities
         public Timer Timer { get; set; }
         public int LoopCount { get; set; } = 0;
         public int ElapsedTicks { get; set; } = 0;
-
+        public double ElapsedTime { get => ElapsedTicks * GlobalSettings.TickRate / 1000.0; }
         public double RealDuration { get; set; } = 0;//
 
 
@@ -48,9 +48,8 @@ namespace DeLight.Utilities
             VideoWindow = videoWindow;
             Timer = new System.Timers.Timer(GlobalSettings.TickRate);
             Timer.Elapsed += Timer_Tick;
-            LightCue l = new(cue.LightScene, cue.FadeType);
+            LightCue l = new(cue.LightScene);
             VisualCues.Add(l);
-            DetermineFileEndingEvent(l);
             foreach (var sf in cue.ScreenFiles.Values)
             {
                 IRunnableScreenCue cme;
@@ -64,33 +63,14 @@ namespace DeLight.Utilities
                     cme = new ImageMediaElement(imgf); //extends CustomMediaElement
                 else
                     throw new Exception("Unknown VisualCue type: " + sf.GetType());
-                DetermineFileEndingEvent(cme);
                 VideoWindow?.Container.Children.Add(cme.GetUIElement());//can't just add an IRunnableScreenCue to the layout
                 VisualCues.Add(cme);
+                cme.FadedIn += VisualCueFadedIn;
             }
             FadedOut += OnFadedOut;
             Console.WriteLine(cue.CueEndAction);
         }
 
-        private void DetermineFileEndingEvent(IRunnableVisualCue vc)
-        {
-            if (vc.File.EndAction == EndAction.FadeAfterEnd)
-                vc.PlaybackEnded += (s, e) => vc.FadeOut();
-            else if (vc.File.EndAction == EndAction.Loop)
-                vc.PlaybackEnded += (s, e) => vc.Restart();
-            else if (vc.File.EndAction == EndAction.FadeBeforeEnd)
-                Timer.Elapsed += FileEndWatch;
-
-        }
-        private void FileEndWatch(object? sender, EventArgs e)
-        {
-            Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                foreach (var vc in VisualCues)
-                    if (!vc.IsFadingOut && vc.Duration - (ElapsedTicks * GlobalSettings.TickRate / 1000.0) <= vc.File.FadeOutDuration)
-                        vc.FadeOut();
-            });
-        }
 
         public void FindRealCueDuration()
         {
@@ -109,9 +89,9 @@ namespace DeLight.Utilities
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 ElapsedTicks++;
-                if (Cue.CueEndAction == EndAction.FadeBeforeEnd && ElapsedTicks * GlobalSettings.TickRate / 1000.0 >= (RealDuration - Cue.FadeOutTime))
+                if (Cue.CueEndAction == EndAction.FadeBeforeEnd && ElapsedTime >= (RealDuration - Cue.FadeOutTime))
                     End();
-                else if (ElapsedTicks * GlobalSettings.TickRate / 1000.0 >= RealDuration)
+                else if (ElapsedTime >= RealDuration)
                 {
                     if (Cue.CueEndAction == EndAction.Loop)
                     {
@@ -125,14 +105,14 @@ namespace DeLight.Utilities
                 }
             });
         }
-        public void End(double duration = -1)
+        public void End()
         {
             ElapsedTicks = 0;
             Timer.Stop();
             foreach (var vc in VisualCues)
             {
                 vc.FadedOut += VisualCueFadedOut;
-                vc.FadeOut(duration == -1 ? Cue.FadeOutTime : duration);
+                vc.FadeOut(ElapsedTime);
             }
         }
 
@@ -150,7 +130,7 @@ namespace DeLight.Utilities
         {
             fadeInCount++;
 
-            if (fadeInCount >= VisualCues.Count)
+            if (fadeInCount >= VisualCues.Where(vc => vc is IRunnableScreenCue).Count())
             {
                 FadedIn?.Invoke(this, EventArgs.Empty);
                 fadeInCount = 0;
@@ -213,78 +193,13 @@ namespace DeLight.Utilities
         public void SeekTo(int tick, bool play = false)
         {
             ElapsedTicks = tick;
-            double seconds = tick * GlobalSettings.TickRate / 1000.0;
             foreach (var vc in VisualCues)
             {
                 vc.Pause();
                 vc.ClearCurrentAnimations();
-                if (seconds < Cue.FadeInTime)
-                    SeekedToFadeIn(vc, seconds, play);
-                else if (seconds > vc.Duration)
-                    SeekedToAfterEnd(vc, seconds, play);
-                else if (vc.File.EndAction == EndAction.FadeBeforeEnd && (vc.Duration - seconds) < Cue.FadeOutTime)
-                    SeekedToFadeBeforeEnd(vc, seconds, play);
-                else
-                    SeekedToNormalPlayback(vc, seconds, play);
+                vc.SeekTo(ElapsedTime, play);
             }
 
-        }
-
-        private void SeekedToFadeIn(IRunnableVisualCue vc, double time, bool play)
-        {
-            if (LoopCount == 0)
-                vc.Opacity = time / Cue.FadeInTime;
-            vc.SeekTo(time);
-            if (play)
-            {
-                vc.FadedIn += VisualCueFadedIn;
-                vc.FadeIn(Cue.FadeInTime - time);
-            }
-        }
-
-        private void SeekedToAfterEnd(IRunnableVisualCue vc, double time, bool play)
-        {
-            time = Math.Max(time, 0);
-            if (vc.File.EndAction == EndAction.Freeze)
-            {
-                vc.Opacity = OPACITY_FULL;
-                vc.SeekTo(time);
-            }
-            else if (vc.File.EndAction == EndAction.FadeBeforeEnd)
-            {
-                vc.Opacity = OPACITY_NONE;
-                vc.SeekTo(time);
-            }
-            else if (vc.File.EndAction == EndAction.FadeAfterEnd)
-            {
-                vc.Opacity = (time - vc.Duration ?? 0) / Cue.FadeOutTime;
-                vc.SeekTo(time);
-                if (play)
-                    vc.FadeOut(Cue.FadeOutTime - (time - vc.Duration ?? 0));
-            }
-            else if (vc.File.EndAction == EndAction.Loop)
-            {
-                vc.Opacity = OPACITY_FULL;
-                while (time > vc.Duration)
-                    time -= vc.Duration ?? 1;
-                vc.SeekTo(time);
-                if (play)
-                    vc.Play();
-            }
-        }
-        private void SeekedToFadeBeforeEnd(IRunnableVisualCue vc, double time, bool play)
-        {
-            vc.Opacity = (time - vc.Duration ?? 0) / Cue.FadeOutTime;
-            vc.SeekTo(time);
-            if (play)
-                vc.FadeOut(Cue.FadeOutTime - (vc.Duration ?? 0 - time));
-        }
-        private void SeekedToNormalPlayback(IRunnableVisualCue vc, double time, bool play)
-        {
-            vc.Opacity = OPACITY_FULL;
-            vc.SeekTo(time);
-            if (play)
-                vc.Play();
         }
     }
 }

@@ -1,14 +1,20 @@
 ﻿
+using System.Collections.Generic;
+using System.Windows.Documents;
+
 namespace DeLight.Models
 {
     public class Step
     {
-        public byte?[] DmxValues { get; set; } = new byte?[512];
+        public Dictionary<int, Channel> Chans = new();
         public int Duration { get; set; } = 300;
-        public Step(byte?[] dmxValues, int duration)
+
+        public int StartTime { get; set; } = 0;
+        public Step(List<Channel> chans, int duration, int startTime)
         {
-            DmxValues = dmxValues;
+            chans.ForEach(c => Chans.TryAdd(c.Index, c));//avoid refactoring the SXP parser
             Duration = duration;
+            StartTime = startTime;
         }
         public Step() { }
     }

@@ -3,19 +3,12 @@ using DeLight.Models;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Linq;
-using System.Timers;
-using DeLight.Utilities;
 
 namespace DeLight.Utilities.LightingOutput
 {
     //This file was created about 3 months after the rest of the IRunnableVisualCue implementations after not working on the project, so it's a bit different.
 
-    /*
-     * 
-     * 
-     * 
-     */
+
     public class LightCue : IRunnableVisualCue
     {
 
@@ -23,158 +16,100 @@ namespace DeLight.Utilities.LightingOutput
         public LightFile File { get; }
 
         CueFile IRunnableVisualCue.File => File;
-        public double Opacity { get; set; }
+        public double Opacity { get; set; }//unused for lights but required for interface
+        public double? FadeOutStartTime { get; private set; }
 
-
-        private readonly FadeType FadeType;//Unused, probably will be removed
         public bool IsFadingOut { private set; get; }
-        public bool IsFadingIn { private set; get; }
+        public List<Step> Steps { get; private set; } = new();
+
         public event EventHandler? FadedIn;
         public event EventHandler? FadedOut;
         public event EventHandler? PlaybackEnded;
 
-        private List<Step> steps = new();
+        public int curTimeInHoS = 0;
 
-        private byte?[] roughValues = new byte?[512];
-
-        private byte[] startingValues = new byte[512];
-        public LightCue(LightFile lf, FadeType fadeType)
+        public LightCue(LightFile lf)
         {
             File = lf;
-            FadeType = fadeType;
         }
 
-        //private void Timer_Tick(object? sender, ElapsedEventArgs e)
-        //{
-        //    elapsedTicks++;
-        //    var curTimeInHoS = elapsedTicks * GlobalSettings.TickRate / 10;
-        //    //HoS = hundredths of a second. elapsedTicks * GlobalSettings.TickRate = milliseconds elapsed. / 10 = hundredths of a second
-        //    //this is because the SXP file is in hundredths of a second. i.e. a 2.95 second step is 295
-        //    roughValues = RawValue(curTimeInHoS);
-
-        //}
-
-        public void ClearCurrentAnimations()
+        public void SendTimeUpdate(double timeInSeconds)
         {
-            Console.WriteLine("ClearCurrentAnimations() called on Light");
+            curTimeInHoS = (int)Math.Round(timeInSeconds * 100);
         }
 
-        public void FadeIn(double duration = -1)
+        public void ClearCurrentAnimations() { }
+
+        public void FadeIn(double startTime = 0)
         {
-            if(steps.Count == 0)
+            LightingManager.Position = (int)Math.Round(startTime * 100);
+        }
+
+        public void FadeOut(double startTime)
+        {
+            if (!IsFadingOut)
             {
-                steps.Add(new Step(new byte?[512], 0));
+                IsFadingOut = true;
+                LightingManager.FadeOut(startTime, File.FadeOutDuration);
             }
-            if(duration != -1)
-            {
-                steps[0].Duration = (int)duration*100;
-            }
-        }
-
-        public void FadeOut(double duration = -1)
-        {
-            Console.WriteLine("FadeOut() called on Light");
         }
 
         public Task LoadAsync()
         {
-            steps = SXPFileParser.ReadSXPSceneFile(File.FilePath);
+            Steps = SXPFileParser.ReadSXPSceneFile(File.FilePath);
+            if (Steps.Count == 0)
+            {
+                Console.WriteLine("Error: No steps in scene file");
+                Steps.Add(new());
+                return Task.CompletedTask;
+            }
             int i = 0;
-            foreach (var step in steps)
+            foreach (var step in Steps)
             {
                 i += step.Duration;
             }
             Duration = i;
+
+
+            if (File.EndAction == EndAction.FadeAfterEnd)
+                FadeOutStartTime = Duration;
+            else if (File.EndAction == EndAction.FadeBeforeEnd)
+                FadeOutStartTime = Duration - File.FadeOutDuration;
+
+
             return Task.CompletedTask;
         }
 
         public void Pause()
         {
-            Console.WriteLine("Pause() called on Light");
+            LightingManager.Pause();
         }
 
         public void Play()
         {
-            timer.Start();
+            LightingManager.Play();
         }
 
-        public void SeekTo(double time)
+        public void SeekTo(double time, bool play)
         {
-            Console.WriteLine("SeekTo() called on Light");
+            Pause();
+            LightingManager.Position = (int)Math.Round(time * 100);
+            if (play)
+                Play();
         }
 
         public void Stop()
         {
-            Console.WriteLine("Stop() called on Light");
+            LightingManager.UpdateCue(null);
         }
 
         public void Restart()
         {
-            Console.WriteLine("Restart() called on Light");
+            LightingManager.UpdateCue(this);
         }
 
 
         #region Internal Methods
-
-        private byte?[] RawValue(int time)
-        {
-            byte?[] values = new byte?[512];
-            byte?[]? startingFrame = null;
-            byte?[]? endingFrame = null;
-            int startTime = 0;
-            int endTime = 0;
-            if(time < steps.First().Duration)//if the time is before the first frame, use the first frame and the values from the previous cue
-            {
-                startingFrame = new byte?[512];
-                for(int i = 0; i < 512; i++)
-                {
-                    startingFrame[i] = startingValues[i];
-                }
-                endingFrame = steps.First().DmxValues;
-                endTime = steps.First().Duration;
-            }
-            else//if the time is after the first frame, find the two frames that the time is between
-            {
-                var elapsedTime = 0;
-                foreach(var step in steps)
-                {
-                    elapsedTime += step.Duration;
-                    if (step.Duration > time)
-                    {
-                        startingFrame = steps[steps.IndexOf(step) - 1].DmxValues;
-                        endingFrame = step.DmxValues;
-                        startTime = elapsedTime - steps[steps.IndexOf(step) - 1].Duration;
-                        endTime = elapsedTime;
-                        break;
-                    }
-                }
-            }
-            if(startingFrame == null || endingFrame == null)
-            {
-                Console.WriteLine("Error: Couldn't find starting or ending frame for LightCue");
-                var x = new byte?[512];
-                for(int i = 0; i < 512; i++)
-                {
-                    x[i] = startingValues[i];
-                }
-                return x;
-            }
-            for(int i = 0; i < 512; i++)//interpolate between the two frames
-            {
-                double? y1 = startingFrame[i];
-                double? y2 = endingFrame[i];
-                if (y2 == null)//if the value is null, it means that the light is off, so we don't need to interpolate. If y2 is not null, y1 will also not be null. (not true the other way around).
-                {
-                    values[i] = null;
-                    continue;
-                }
-                double fraction = (double)(time - startTime) / (endTime - startTime);
-
-                double interpolatedValue = (double)y1! + ((double)y2 - (double)y1!) * fraction;
-                values[i] = (byte)Math.Round(interpolatedValue);
-            }
-            return values;
-        }
 
         #endregion
 
