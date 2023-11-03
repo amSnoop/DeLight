@@ -8,18 +8,14 @@
 		<Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="ActualControl">
 			<Grid x:Name="CueSettings">
 				<Grid.RowDefinitions>
-					<RowDefinition Height="1.2*" MinHeight="325"/>
+					<RowDefinition Height=".7*" MinHeight="200"/>
 					<RowDefinition Height="*" />
-					<RowDefinition Height="Auto" />
-					<RowDefinition Height=".05*" MinHeight="20"/>
 				</Grid.RowDefinitions>
-				<Border Grid.RowSpan="4" ZIndex="1" HorizontalAlignment="Stretch" Background="#000" VerticalAlignment="Stretch" IsVisible="{Binding !Visible}">
-					<TextBlock Classes="Title" VerticalAlignment="Center" TextAlignment="Center">Select a cue -></TextBlock>
+				<Border Grid.RowSpan="2" ZIndex="1" HorizontalAlignment="Stretch" Background="#000" VerticalAlignment="Stretch" IsVisible="{Binding !Visible}">
+					<TextBlock Classes="Title" HorizontalAlignment="Center" VerticalAlignment="Center">Select a cue -></TextBlock>
 				</Border>
 				<Grid Grid.Row="0" x:Name="DefaultCueDisplay">
 					<Grid.RowDefinitions>
-						<RowDefinition Height="*" />
-						<RowDefinition Height="*" />
 						<RowDefinition Height="*" />
 						<RowDefinition Height="*" />
 						<RowDefinition Height="*" />
@@ -32,27 +28,24 @@
 						<ColumnDefinition Width="*" />
 					</Grid.ColumnDefinitions>
 
-					<TextBlock Grid.Row="1" Text="Cue Number:" VerticalAlignment="Center" ToolTip.Tip="Duplicate numbers will give priority to this cue, and other cues will rearrange to compensate."/>
-					<TextBox Grid.Row="1" Grid.Column="2" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Number}" Margin="0"/>
-					<TextBlock Grid.Row="2" Text="Use Letters for Collisions:" VerticalAlignment="Center" Grid.ColumnSpan="2" ToolTip.Tip="Should cue number duplications be avoided by incrementing whole numbers or by adding a letter to the end of the number? (e.g. 1, 2, 3 vs 1, 1a, 1b)"/>
-					<CheckBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding UseLetters}" HorizontalAlignment="Right" Margin="0" Padding="0"/>
+					<TextBlock Grid.Row="0" Text="Cue Number:" VerticalAlignment="Center" ToolTip.Tip="Duplicate numbers will give priority to this cue, and other cues will rearrange to compensate."/>
+					<TextBox Grid.Row="0" Grid.Column="2" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Number}" Margin="0"/>
+					<TextBlock Grid.Row="1" Text="Description:" VerticalAlignment="Center"/>
+					<TextBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding Note}" />
 
-					<TextBlock Grid.Row="3" Text="Description:" VerticalAlignment="Center"/>
-					<TextBox Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding Note}" />
+					<TextBlock Grid.Row="2" Text="Duration:" VerticalAlignment="Center" ToolTip.Tip="A non-zero value will override the source files' expected durations. 0 is infinite."/>
+					<TextBox Grid.Row="2" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Duration}" />
 
-					<TextBlock Grid.Row="4" Text="Duration:" VerticalAlignment="Center" ToolTip.Tip="A non-zero value will override the source files' expected durations. 0 is infinite."/>
-					<TextBox Grid.Row="4" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Duration}" />
-
-					<TextBlock Grid.Row="5" Text="Volume:" VerticalAlignment="Center"/>
-					<Grid Grid.Row="5" Grid.Column="1" ColumnDefinitions="20*, *,Auto" VerticalAlignment="Center">
+					<TextBlock Grid.Row="3" Text="Volume:" VerticalAlignment="Center"/>
+					<Grid Grid.Row="3" Grid.Column="1" ColumnDefinitions="20*, *,Auto" VerticalAlignment="Center">
 						<Slider HorizontalAlignment="Stretch" VerticalAlignment="Center" Maximum="1" Minimum="0" TickFrequency="0.01" Value="{Binding Volume}"/>
-						<TextBox Grid.Column="2" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Volume, Mode=TwoWay}" />
+						<TextBox Grid.Column="2" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Volume, Mode=OneWay}" LostFocus="TBLostFocus" />
 					</Grid>
-					<TextBlock Grid.Row="6" Text="Fade In Mode:" VerticalAlignment="Center" ToolTip.Tip="Not yet implemented"/>
-					<ComboBox Grid.Row="6" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" SelectedIndex="{Binding FadeType, Mode=TwoWay}" ItemsSource="{Binding FadeTypeStrings}" IsEnabled="False"/>
+					<TextBlock Grid.Row="4" Text="Fade In Mode:" VerticalAlignment="Center" ToolTip.Tip="Not yet implemented"/>
+					<ComboBox Grid.Row="4" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" SelectedIndex="{Binding FadeType, Mode=TwoWay}" ItemsSource="{Binding FadeTypeStrings}" IsEnabled="False"/>
 
-					<TextBlock Grid.Row="7" Text="Cue Ending Behavior:" VerticalAlignment="Center"/>
-					<ComboBox Grid.Row="7" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"  SelectedIndex="{Binding CueEndAction, Mode=TwoWay}" ItemsSource="{Binding EndActionStrings}" />
+					<TextBlock Grid.Row="5" Text="Cue Ending Behavior:" VerticalAlignment="Center"/>
+					<ComboBox Grid.Row="5" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"  SelectedIndex="{Binding CueEndAction, Mode=TwoWay}" ItemsSource="{Binding EndActionStrings}" />
 				</Grid>
 				<ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,10,0,0" >
 					<ItemsControl Background="#090909" ItemsSource="{Binding Files}">
@@ -107,14 +100,6 @@
 						</ItemsControl.ItemTemplate>
 					</ItemsControl>
 				</ScrollViewer>
-				<Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,*">
-					<Button HorizontalAlignment="Center" Command="{Binding Save}">
-						<TextBlock Text="Save" Classes="SubTitle"/>
-					</Button>
-					<Button Grid.Column="1" HorizontalAlignment="Center" Margin="0,10" Command="{Binding Cancel}">
-						<TextBlock Text="Revert" Classes="SubTitle"/>
-					</Button>
-				</Grid>
 			</Grid>
 		</Border>
 </UserControl>

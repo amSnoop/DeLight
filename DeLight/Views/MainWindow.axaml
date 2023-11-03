@@ -39,7 +39,10 @@
 
 		<!--Previewer / Cue Settings window-->
 		<Border Grid.Row="0" Grid.Column="3" Margin="0,20" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-			<views:CueEditorControl x:Name="CueEditorWindow"/>
+			<Grid RowDefinitions="Auto,*">
+				<TextBlock Classes="Title" >Cue Editor</TextBlock>
+				<views:CueEditorControl Grid.Row="1" x:Name="CueEditorWindow"/>
+			</Grid>
 		</Border>
 
 		<!--Cue List Window-->

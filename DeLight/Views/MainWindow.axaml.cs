@@ -56,11 +56,9 @@ namespace DeLight.Views
             {
                 var cueEditorViewModel = new CueEditorViewModel(new(), (cue, useLetters) =>
                 {
-                    CueEditorWindow.IsVisible = false;
                     (DataContext as MainWindowViewModel)?.InsertCue(cue, useLetters);
                 });
                 CueEditorWindow.DataContext = cueEditorViewModel;
-                CueEditorWindow.IsVisible = true;
             }
         }
 
