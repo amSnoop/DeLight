@@ -90,7 +90,7 @@ namespace DeLight.Models
             {
                 Number = "3",
                 Note = "Huge success!",
-                ScreenFiles = new() { {1, new VideoFile() { FilePath = "No" } } },
+                ScreenFiles = new() { {1, new VideoFile() { FilePath = @"C:\Users\Snoopy\Downloads\WCHB.mp4" } } },
             });
             show.Cues.Add(new Cue()
             {
@@ -114,11 +114,6 @@ namespace DeLight.Models
                 Number = "7",
                 Note = "For the good of all of us,",
                 Disabled = true
-            });
-            show.Cues.Add(new Cue()
-            {
-                Number = "+",
-                Note = "",
             });
             return show;
         }

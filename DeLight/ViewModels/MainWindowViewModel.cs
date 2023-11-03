@@ -223,6 +223,11 @@ namespace DeLight.ViewModels
             if (cue != null)
                 showRunner.AddCue(cue, useLetters);
         }
+        public void UpdateCue(Cue? cue, bool useLetters)
+        {
+            if (cue != null)
+                showRunner.UpdateCue(cue, useLetters);
+        }
     }
 
 }

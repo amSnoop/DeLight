@@ -45,7 +45,10 @@ namespace DeLight.Views
                 var cueEditorViewModel = new CueEditorViewModel(e.Cue, (cue, useLetters) =>
                 {
                     CueEditorWindow.IsVisible = false;
-                    (DataContext as MainWindowViewModel)?.InsertCue(cue, useLetters);
+                    if(e.Cue.Number == cue.Number)
+                        (DataContext as MainWindowViewModel)?.UpdateCue(cue, useLetters);
+                    else
+                        (DataContext as MainWindowViewModel)?.InsertCue(cue, useLetters);
                 });
                 CueEditorWindow.DataContext = cueEditorViewModel;
                 CueEditorWindow.IsVisible = true;
@@ -102,6 +105,7 @@ namespace DeLight.Views
                     });
                     CueEditorWindow.DataContext = cueEditorViewModel;
                     CueEditorWindow.IsVisible = true;
+                    Focus();
                 }
             }
             SelectedInfoView.DataContext = new CueInfoViewModel((CueList.SelectedItem as CueListCueViewModel)?.Cue, "selected");
@@ -151,7 +155,13 @@ namespace DeLight.Views
                 if (IsPointOutsideControl(currentPointRelativeToCueEditor, CueEditorWindow.ActualControl) &&
                     IsPointOutsideControl(currentPointRelativeToCueList, CueList))
                 {
-                    CueEditorWindow.IsVisible = !TryCloseCueEditor();
+                    if (TryCloseCueEditor())
+                    {
+                        CueEditorWindow.IsVisible = false;
+                        Focus();
+                    }
+                    else
+                        CueEditorWindow.IsVisible = true;
                 }
             }
         }
@@ -160,23 +170,6 @@ namespace DeLight.Views
             var controlBounds = new Rect(0, 0, control.Bounds.Width, control.Bounds.Height);
             return !controlBounds.Contains(point);
         }
-
-        //private void OnDeviceNotifyEvent(object? sender, DeviceNotifyEventArgs e)
-        //{
-        //    if (e.Device.IdVendor == vendor_id && e.Device.IdProduct == product_id)
-        //    {
-        //        if (e.EventType == EventType.DeviceArrival)
-        //        {
-        //            Console.WriteLine("Device connected.");
-        //            // handle connection event
-        //        }
-        //        else if (e.EventType == EventType.DeviceRemoveComplete)
-        //        {
-        //            Console.WriteLine("Device disconnected.");
-        //            // handle disconnection event
-        //        }
-        //    }
-        //}
 
         protected override void OnClosed(EventArgs e)
         {

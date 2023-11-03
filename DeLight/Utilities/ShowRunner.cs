@@ -118,7 +118,11 @@ namespace DeLight.Utilities
             ActiveCue?.SeekTo(tick);
         }
 
-
+        public void UpdateCue(Cue cue, bool useLetters)
+        {
+            DeleteCue(Show.Cues.Single(c => c.Number == cue.Number));
+            AddCue(cue, useLetters);
+        }
 
         public void AddCue(Cue cue, bool useLetters)
         {
