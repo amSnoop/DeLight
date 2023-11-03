@@ -24,8 +24,6 @@ namespace DeLight.Utilities
      */
     public class CueRunner
     {
-        private readonly double OPACITY_FULL = 1;//chatGPT doesn't like magic numbers, and GPT is my code reviewer, so here we are
-        private readonly double OPACITY_NONE = 0;
 
         private int fadeInCount = 0, fadeOutCount = 0;
 

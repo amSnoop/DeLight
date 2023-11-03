@@ -36,90 +36,10 @@
 		</Grid.ColumnDefinitions>
 
 		<!--Cue Editing Window-->
-		<views:CueEditorControl Grid.ColumnSpan="5" ZIndex="1" x:Name="CueEditorWindow" IsVisible="False"/>
 
 		<!--Previewer / Cue Settings window-->
-		<Border Grid.Row="0" Grid.Column="3" Margin="0,20">
-			<Grid>
-				<Grid.RowDefinitions>
-					<RowDefinition Height="Auto" />
-					<RowDefinition Height="*" />
-					<RowDefinition Height="Auto" />
-					<RowDefinition Height=".15*" />
-					<RowDefinition Height="*" MinHeight="180"/>
-				</Grid.RowDefinitions>
-				<TextBlock HorizontalAlignment="Center" Grid.ColumnSpan="2" Text="Previewer" Classes="Title" />
-				<Border Background="{StaticResource AccentBrush}" Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="10,10,10,0">
-					<TextBlock Text="Preview" HorizontalAlignment="Center" VerticalAlignment="Center" />
-				</Border>
-				<Grid Grid.Row="2" Margin="0,10">
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*" />
-						<ColumnDefinition Width="10*" />
-						<ColumnDefinition Width="*" />
-					</Grid.ColumnDefinitions>
-					<Grid.RowDefinitions>
-						<RowDefinition Height="Auto" />
-						<RowDefinition Height="Auto" />
-					</Grid.RowDefinitions>
-					<TextBlock Grid.Row="0" Grid.Column="1" Text="Preview Scrubber" Margin="0,0,0,10" Classes="SubTitle" />
-					<Slider Grid.Row="1" Grid.Column="1" />
-				</Grid>
-				<Grid Grid.Row="4" RowDefinitions="Auto,*">
-					<!-- Tab Headers -->
-					<ListBox SelectionMode="Single" SelectedIndex="0" HorizontalAlignment="Stretch" Padding="0" Background="Transparent">
-						<ListBox.ItemsPanel>
-							<ItemsPanelTemplate>
-								<UniformGrid Rows="1" />
-							</ItemsPanelTemplate>
-						</ListBox.ItemsPanel>
-						<ListBox.Styles>
-							<Style Selector="ListBoxItem:selected Border">
-								<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-							</Style>
-							<Style Selector="ListBoxItem:pointerover Border">
-								<Setter Property="BorderBrush" Value="{StaticResource AccentBrushDark}" />
-							</Style>
-							<Style Selector="ListBoxItem:pointerover:selected Border">
-								<Setter Property="BorderBrush" Value="{StaticResource AccentBrushLight}" />
-							</Style>
-							<Style Selector="ListBoxItem Border">
-								<Setter Property="BorderBrush" Value="{StaticResource TextDisabled}" />
-							</Style>
-							<Style Selector="ListBoxItem ContentPresenter">
-								<Setter Property="Margin" Value="0" />
-								<Setter Property="Padding" Value="0" />
-								<Setter Property="Background" Value="Transparent" />
-							</Style>
-							<Style Selector="ListBoxItem:selected ContentPresenter">
-								<Setter Property="Background" Value="Transparent" />
-							</Style>
-							<Style Selector="ListBoxItem:pointerover ContentPresenter">
-								<Setter Property="Background" Value="Transparent" />
-							</Style>
-						</ListBox.Styles>
-						<ListBoxItem Name="Active" Background="Transparent">
-							<ListBoxItem.Content>
-								<Border Classes="TabMenu" BorderThickness="0,0,0,4" HorizontalAlignment="Center" Padding="5,0,5,5">
-									<TextBlock Text="Active Cue" TextAlignment="Center" Classes="SubTitle"/>
-								</Border>
-							</ListBoxItem.Content>
-						</ListBoxItem>
-						<ListBoxItem Name="Selected"  Background="Transparent">
-							<ListBoxItem.Content>
-								<Border Classes="TabMenu" BorderThickness="0,0,0,4" HorizontalAlignment="Center" Padding="5,0,5,5">
-									<TextBlock Text="Selected Cue" TextAlignment="Center" Classes="SubTitle"/>
-								</Border>
-							</ListBoxItem.Content>
-						</ListBoxItem>
-					</ListBox>
-					<!-- Tab Contents -->
-					<Grid Grid.Row="1">
-							<views:CueInfoView x:Name="ActiveInfoView" IsVisible="{Binding #Active.IsSelected}" />
-							<views:CueInfoView x:Name="SelectedInfoView" IsVisible="{Binding #Selected.IsSelected}"/>
-					</Grid>
-				</Grid>
-			</Grid>
+		<Border Grid.Row="0" Grid.Column="3" Margin="0,20" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+			<views:CueEditorControl x:Name="CueEditorWindow"/>
 		</Border>
 
 		<!--Cue List Window-->

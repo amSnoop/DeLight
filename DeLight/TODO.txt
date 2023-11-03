@@ -5,7 +5,6 @@ Change the CueEditorViewModel to refelct the changes to the CueFile handling
 Implement Cue Editor Saving
 Implement Show mode
 Implement Global Controls (fade to black, show/hide video window, etc)
-Implement the preview window
 Add a context Menu for the cue list
 Add a Add Cue button
 Add tooltips

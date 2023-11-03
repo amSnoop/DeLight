@@ -30,14 +30,7 @@ namespace DeLight.Utilities.LightingOutput
             }
             for (int i = 0; i < 512; i++)
             {
-                if (data[i] == null)
-                {
-                    dataToSend[i] = LastSentData[i];
-                }
-                else
-                {
-                    dataToSend[i] = data[i]!.Value;
-                }
+                dataToSend[i] = data[i] == null ? LastSentData[i] : data[i]!.Value;
             }
             LastSentData = dataToSend;//The next time the timer elapses, this will be sent.
         }

@@ -164,13 +164,15 @@ namespace DeLight.ViewModels
             "Fade Before End" ,
             "Freeze"
         };
-
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(Visible))]
         private Cue cue;
         private bool isNew;
         public bool IsSaved { get; private set; } = true;
 
         public int NumProjectors => GlobalSettings.Instance.NumProjectors;
 
+        public bool Visible => cue != null;
 
         [ObservableProperty]
         private string number;
@@ -226,6 +228,7 @@ namespace DeLight.ViewModels
                 if (file is not null)
                     file.PropertyChanged += (s, e) => OnPropertyChanged(e);
             }
+            OnPropertyChanged(nameof(Visible));
         }
         [RelayCommand]
         public void Save()

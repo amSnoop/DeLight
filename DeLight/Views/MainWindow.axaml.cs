@@ -22,10 +22,6 @@ namespace DeLight.Views
             //DefaultCueDisplay.DataContext = GlobalSettings.Instance.DefaultCue;
             SettingsDisplay.DataContext = GlobalSettings.Instance;
             CueList.SelectionChanged += CueList_SelectionChanged;
-            ActiveInfoView.DataContext = new CueInfoViewModel(null, "active");
-            SelectedInfoView.DataContext = new CueInfoViewModel(null, "selected");
-            ActiveInfoView.EditButtonClicked += Info_EditButtonClicked;
-            SelectedInfoView.EditButtonClicked += Info_EditButtonClicked;
             AddCueButton.Click += CueListAddButtonClicked;
             KeyDown += OnKeyDown;
             SizeChanged += MainWindow_OnSizeChanged;
@@ -44,14 +40,12 @@ namespace DeLight.Views
             {
                 var cueEditorViewModel = new CueEditorViewModel(e.Cue, (cue, useLetters) =>
                 {
-                    CueEditorWindow.IsVisible = false;
                     if(e.Cue.Number == cue.Number)
                         (DataContext as MainWindowViewModel)?.UpdateCue(cue, useLetters);
                     else
                         (DataContext as MainWindowViewModel)?.InsertCue(cue, useLetters);
                 });
                 CueEditorWindow.DataContext = cueEditorViewModel;
-                CueEditorWindow.IsVisible = true;
 
             }
         }
@@ -100,15 +94,12 @@ namespace DeLight.Views
                 { 
                     var cueEditorViewModel = new CueEditorViewModel((CueList.SelectedItem as CueListCueViewModel)?.Cue ?? new(), (cue, useLetters) =>
                     {
-                        CueEditorWindow.IsVisible = false;
                         (DataContext as MainWindowViewModel)?.InsertCue(cue, useLetters);
                     });
                     CueEditorWindow.DataContext = cueEditorViewModel;
-                    CueEditorWindow.IsVisible = true;
                     Focus();
                 }
             }
-            SelectedInfoView.DataContext = new CueInfoViewModel((CueList.SelectedItem as CueListCueViewModel)?.Cue, "selected");
         }
 
         public bool TryCloseCueEditor()
@@ -124,10 +115,7 @@ namespace DeLight.Views
                     cevm.Save();
                     return true;
                 }
-                else if (result == System.Windows.MessageBoxResult.No)
-                    return true;
-                else
-                    return false;
+                else return result == System.Windows.MessageBoxResult.No;
             }
             return true;
         }
@@ -198,7 +186,6 @@ namespace DeLight.Views
             else if (e.Key == Avalonia.Input.Key.Space && DataContext is MainWindowViewModel vm && Keyboard.FocusedElement is not TextBox)
             {
                 vm.PlayCue();
-                ActiveInfoView.DataContext = new CueInfoViewModel(vm.CuePlaybackViewModel?.Cue, "active");
                 e.Handled = true;
             }
             else
