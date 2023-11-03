@@ -43,7 +43,7 @@ namespace DeLight.Utilities
         [ObservableProperty]
         private CueRunner? activeCue;
         [ObservableProperty]
-        private VideoWindow? videoWindow;//REMOVE THIS LATER. WILL MAKE SOME KIND OF VIDEO WINDOW MANAGER
+        private VideoWindow? videoWindow;//TODO: REMOVE THIS LATER. WILL MAKE SOME KIND OF VIDEO WINDOW MANAGER
 
         public event EventHandler? OnLoaded;
 
@@ -71,7 +71,7 @@ namespace DeLight.Utilities
                 cue.LightScene = LightFile.CheckLightFile(cue.LightScene);
                 foreach (var projFilePair in cue.ScreenFiles.ToList())
                 {
-                    cue.ScreenFiles[projFilePair.Key] = (ScreenFile)CueFile.ConvertCueFile(projFilePair.Value);//will always be a screen file, despite the class
+                    cue.ScreenFiles[projFilePair.Key] = ScreenFile.ConvertCueFile(projFilePair.Value);
                 }
             }
             OnLoaded?.Invoke(this, EventArgs.Empty);
