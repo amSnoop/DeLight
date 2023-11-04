@@ -5,8 +5,8 @@ using DeLight.Utilities;
 using System.Windows.Input;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia;
 using static DeLight.ViewModels.CueListContextMenuButtonClickedEventArgs;
+using System.Linq;
 
 namespace DeLight.Views
 {
@@ -19,7 +19,6 @@ namespace DeLight.Views
             WindowState = WindowState.Normal;
             Position = new(GlobalSettings.Instance.LastScreenLeft, GlobalSettings.Instance.LastScreenTop);
             InitializeComponent();
-            //DefaultCueDisplay.DataContext = GlobalSettings.Instance.DefaultCue;
             SettingsDisplay.DataContext = GlobalSettings.Instance;
             CueList.SelectionChanged += CueList_SelectionChanged;
             AddCueButton.Click += CueListAddButtonClicked;
@@ -38,13 +37,7 @@ namespace DeLight.Views
         {
             if (e.Cue != null)
             {
-                var cueEditorViewModel = new CueEditorViewModel(e.Cue, (cue, useLetters) =>
-                {
-                    if(e.Cue.Number == cue.Number)
-                        (DataContext as MainWindowViewModel)?.UpdateCue(cue, useLetters);
-                    else
-                        (DataContext as MainWindowViewModel)?.InsertCue(cue, useLetters);
-                });
+                var cueEditorViewModel = new CueEditorViewModel(e.Cue);
                 CueEditorWindow.DataContext = cueEditorViewModel;
 
             }
@@ -52,13 +45,11 @@ namespace DeLight.Views
 
         public void CueListAddButtonClicked(object? sender, RoutedEventArgs e)
         {
-            if (DataContext is MainWindowViewModel)
+            if (DataContext is MainWindowViewModel vm)
             {
-                var cueEditorViewModel = new CueEditorViewModel(new(), (cue, useLetters) =>
-                {
-                    (DataContext as MainWindowViewModel)?.InsertCue(cue, useLetters);
-                });
+                var cueEditorViewModel = new CueEditorViewModel(new() { Number = vm.Cues.Last().Cue?.Number + 1 ?? 0 });
                 CueEditorWindow.DataContext = cueEditorViewModel;
+                vm.InsertCue(cueEditorViewModel.Cue);
             }
         }
 
@@ -80,42 +71,9 @@ namespace DeLight.Views
         }
         public void CueList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
-            if (CueEditorWindow.IsVisible)
-            {
-                if (!TryCloseCueEditor())
-                {
-                    CueList.SelectionChanged -= CueList_SelectionChanged;
-                    CueList.SelectedItem = e.RemovedItems[0];
-                    CueList.SelectionChanged += CueList_SelectionChanged;
-                }
-                else
-                { 
-                    var cueEditorViewModel = new CueEditorViewModel((CueList.SelectedItem as CueListCueViewModel)?.Cue ?? new(), (cue, useLetters) =>
-                    {
-                        (DataContext as MainWindowViewModel)?.InsertCue(cue, useLetters);
-                    });
-                    CueEditorWindow.DataContext = cueEditorViewModel;
-                    Focus();
-                }
-            }
-        }
-
-        public bool TryCloseCueEditor()
-        {
-            if (CueEditorWindow.DataContext is CueEditorViewModel cevm)
-            {
-                if (cevm.IsSaved)
-                    return true;
-
-                var result = System.Windows.MessageBox.Show("You have unsaved changes. Would you like to save them?", "Unsaved Changes", System.Windows.MessageBoxButton.YesNoCancel);
-                if (result == System.Windows.MessageBoxResult.Yes)
-                {
-                    cevm.Save();
-                    return true;
-                }
-                else return result == System.Windows.MessageBoxResult.No;
-            }
-            return true;
+            var cueEditorViewModel = new CueEditorViewModel((CueList.SelectedItem as CueListCueViewModel)?.Cue ?? new());
+            CueEditorWindow.DataContext = cueEditorViewModel;
+            Focus();
         }
 
         public void MainWindow_Loaded(object? sender, EventArgs e)
@@ -133,29 +91,13 @@ namespace DeLight.Views
             GetTopLevel(this)?.FocusManager?.ClearFocus();
             Activate();
             Focus();
-            if (CueEditorWindow.IsVisible)
-            {
-                var currentPointRelativeToCueEditor = e.GetCurrentPoint(CueEditorWindow.ActualControl).Position;
-                var currentPointRelativeToCueList = e.GetCurrentPoint(CueList).Position;
-
-                if (IsPointOutsideControl(currentPointRelativeToCueEditor, CueEditorWindow.ActualControl) &&
-                    IsPointOutsideControl(currentPointRelativeToCueList, CueList))
-                {
-                    if (TryCloseCueEditor())
-                    {
-                        CueEditorWindow.IsVisible = false;
-                        Focus();
-                    }
-                    else
-                        CueEditorWindow.IsVisible = true;
-                }
-            }
         }
-        private bool IsPointOutsideControl(Point point, Control control)
-        {
-            var controlBounds = new Rect(0, 0, control.Bounds.Width, control.Bounds.Height);
-            return !controlBounds.Contains(point);
-        }
+        //unused atm
+        //private bool IsPointOutsideControl(Point point, Control control)
+        //{
+        //    var controlBounds = new Rect(0, 0, control.Bounds.Width, control.Bounds.Height);
+        //    return !controlBounds.Contains(point);
+        //}
 
         protected override void OnClosed(EventArgs e)
         {

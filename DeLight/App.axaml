@@ -18,11 +18,13 @@
 		<SolidColorBrush x:Key="AccentBrushDark" Color="#468" />
 		<SolidColorBrush x:Key="AccentBrushMed" Color="#579" />
 		<SolidColorBrush x:Key="AccentBrushLight" Color="#7cf" />
+		<SolidColorBrush x:Key="ErrorBG" Color="#56211d" />
+		<SolidColorBrush x:Key="ErrorFG" Color="#F33" />
 	</Application.Resources>
 	<Application.Styles>
 		<FluentTheme />
 		<Style Selector="TextBox:pointerover">
-			<Setter Property="Background" Value="{StaticResource InteractiveControlMouseOver}" />
+			<Setter Property="Background" Value="#fff" />
 			<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
 		</Style>
 		<Style Selector="TextBox:focus">
@@ -36,6 +38,16 @@
 		</Style>
 		<Style Selector="TextBox:focus Border">
 			<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+		</Style>
+		<Style Selector="TextBox.Error">
+			<Setter Property="Foreground" Value="{StaticResource ErrorFG}" />
+			<Setter Property="Background" Value="{StaticResource ErrorBG}" />
+		</Style>
+		<Style Selector="TextBox.Error:pointerover /template/ Border#PART_BorderElement">
+			<Setter Property="Background" Value="{StaticResource ErrorBG}" />
+		</Style>
+		<Style Selector="TextBox.Error:focus /template/ Border#PART_BorderElement">
+			<Setter Property="Background" Value="{StaticResource ErrorBG}" />
 		</Style>
 		<Style Selector="TextBox">
 			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>

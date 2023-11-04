@@ -31,22 +31,16 @@ namespace DeLight.ViewModels
         public CueInfoViewModel()
         {
             Cue = new();
-            CueFiles.Add(Cue.LightScene);
-            foreach (CueFile file in Cue.ScreenFiles.Values.ToList())
-            {
-                CueFiles.Add(file);
-            }
+            CueFiles.Add(Cue.LightFile);
+            CueFiles.Add(Cue.ScreenFile);
             CueNullReason = "No cue";
         }
         public CueInfoViewModel(Cue? cue, string type) : base(cue)
         {
             if (cue != null)
             {
-                CueFiles.Add(cue.LightScene);
-                foreach (CueFile file in cue.ScreenFiles.Values.ToList())
-                {
-                    CueFiles.Add(file);
-                }
+                CueFiles.Add(cue.LightFile);
+                CueFiles.Add(cue.ScreenFile);
             }
             CueNullReason = type switch
             {

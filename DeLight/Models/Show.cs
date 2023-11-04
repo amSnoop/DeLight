@@ -2,6 +2,7 @@
 using DeLight.Models.Files;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 
@@ -14,7 +15,7 @@ namespace DeLight.Models
         [ObservableProperty]
         private string path = "";
         [ObservableProperty]
-        private List<Cue> cues = new();
+        private ObservableCollection<Cue> cues = new();
 
         public Cue? this[int i]
         {
@@ -34,7 +35,7 @@ namespace DeLight.Models
         {
             Name = name;
             Path = path;
-            Cues = cues;
+            Cues = new(cues);
         }
         public Show()
         {
@@ -65,53 +66,49 @@ namespace DeLight.Models
             Show show = new("Test Show", "testshow.json", new List<Cue>());
             show.Cues.Add(new Cue()
             {
-                Number = "1",
+                Number = 1,
                 Note = "This was a triumph",
-                ScreenFiles = new() {
-                    {1, new VideoFile() {
-                        FilePath = "C:\\Users\\Snoopy\\Videos\\Halo  The Master Chief Collection\\cutscene example.mp4"
-                    } }
+                ScreenFile = new() {
+                    FilePath = "C:\\Users\\Snoopy\\Videos\\Halo  The Master Chief Collection\\cutscene example.mp4"
                 },
                 CueEndAction = EndAction.FadeBeforeEnd
-                
+
             });
             show.Cues.Add(new Cue()
             {
-                Number = "2",
+                Number = 2,
                 Note = "I'm leaving a note here:",
-                ScreenFiles = new() {
-                    {1,  new VideoFile() {
+                ScreenFile = new() {
                         FilePath = "C:\\Users\\Snoopy\\Videos\\Halo  The Master Chief Collection\\elite dont give a fuck.mp4",
-                    } }
                 },
                 CueEndAction = EndAction.Loop
             });
             show.Cues.Add(new Cue()
             {
-                Number = "3",
+                Number = 3,
                 Note = "Huge success!",
-                ScreenFiles = new() { {1, new VideoFile() { FilePath = @"C:\Users\Snoopy\Downloads\WCHB.mp4" } } },
+                ScreenFile = new() { FilePath = @"C:\Users\Snoopy\Downloads\WCHB.mp4" },
             });
             show.Cues.Add(new Cue()
             {
-                Number = "4",
+                Number = 4,
                 Note = "It's hard to overstate my satisfaction.",
-                ScreenFiles = new() { { 1, new ImageFile() { FilePath = "C:\\Users\\Snoopy\\Pictures\\4k-space-wallpaper-1.jpg" } } },
+                ScreenFile = new() { FilePath = "C:\\Users\\Snoopy\\Pictures\\4k-space-wallpaper-1.jpg" },
             });
             show.Cues.Add(new Cue()
             {
-                Number = "5",
+                Number = 5,
                 Note = "Aperture Science",
-                ScreenFiles = new() { { 1, new ImageFile() { FilePath = "\"C:\\Users\\Snoopy\\Pictures\\4k-space-wallpaper-1.jpg\"" } } },
+                ScreenFile = new() { FilePath = "\"C:\\Users\\Snoopy\\Pictures\\4k-space-wallpaper-1.jpg\"" },
             });
             show.Cues.Add(new Cue()
             {
-                Number = "6",
+                Number = 6,
                 Note = "We do what we must, because, we can.",
             });
             show.Cues.Add(new Cue()
             {
-                Number = "7",
+                Number = 7,
                 Note = "For the good of all of us,",
                 Disabled = true
             });

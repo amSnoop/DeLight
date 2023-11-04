@@ -3,6 +3,7 @@ using DeLight.Models.Files;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace DeLight.Models
 {
@@ -33,12 +34,14 @@ namespace DeLight.Models
     public partial class Cue : ObservableObject
     {
         [ObservableProperty]
-        private string number = "";
+        private int number;
         [ObservableProperty]
-        private string note = "";
+        private string letter;
+        [ObservableProperty]
+        private string note;
 
         [ObservableProperty]
-        private bool isActive = false;//Used for changing the color in the CueList because I didn't want to make a whole new view model for it
+        private bool isActive;//Used for changing the color in the CueList because I didn't want to make a whole new view model for it
 
         [ObservableProperty]
         private double fadeInTime;
@@ -53,123 +56,35 @@ namespace DeLight.Models
         [ObservableProperty]
         private EndAction cueEndAction;
         [ObservableProperty]
-        private Dictionary<int, ScreenFile> screenFiles;
+        private ScreenFile screenFile;
         [ObservableProperty]
-        private LightFile lightScene;
+        private LightFile lightFile;
         [ObservableProperty]
         private bool disabled;
 
 
         public Cue()
         {
-            Number = "0";
-            FadeInTime = 3;
-            FadeOutTime = 3;
-            Volume = .2;
-            Note = "New Cue";
-            Duration = 0;
-            CueEndAction = EndAction.FadeAfterEnd;
-            FadeType = FadeType.FadeOver;
-            ScreenFiles = new()
-            {
-                { 1, new BlackoutScreenFile() }
-            };
-            LightScene = new BlackoutLightFile();
+            number = 0;
+            letter = "";
+            fadeInTime = 3;
+            fadeOutTime = 3;
+            volume = .2;
+            note = "New Cue";
+            duration = 0;
+            cueEndAction = EndAction.FadeAfterEnd;
+            fadeType = FadeType.FadeOver;
+            screenFile = new BlackoutScreenFile();
+            lightFile = new BlackoutLightFile();
         }
 
-        public bool SetScreenFile(int screenNumber, ScreenFile file)
+        public int CompareNum(Cue? c2)
         {
-            if(screenNumber > 0)
-            {
-                ScreenFiles[screenNumber] = file;
-                return true;
-            }
-            return false;
+            if (c2 == null || Number > c2.Number || (Number == c2.Number && string.Compare(Letter, c2.Letter) > 0))
+                return 1;
+            if (Number == c2.Number && Letter == c2.Letter)
+                return 0;
+            return -1;
         }
-
-        public bool ChangeFileScreen(int screenNumber, ScreenFile file)
-        {
-            int curScreen = ScreenFiles.FirstOrDefault(x => x.Value == file).Key;
-            if (curScreen != 0 && screenNumber > 0)
-            {
-                ScreenFiles[curScreen] = new BlackoutScreenFile();
-                ScreenFiles[screenNumber] = file;
-                return true;
-            }
-            return false;
-        }
-
-        public bool SwapFileScreen(int screenNumber, ScreenFile file)
-        {
-            int curScreen = ScreenFiles.FirstOrDefault(x => x.Value == file).Key;
-            if (curScreen != 0 && screenNumber > 0)
-            {
-                ScreenFile temp = ScreenFiles[screenNumber];
-                ScreenFiles[screenNumber] = file;
-                ScreenFiles[curScreen] = temp;
-                return true;
-            }
-            return false;
-        }
-        public void RemoveScreen(int screenNumber)
-        {
-            if (screenNumber > 0)
-            {
-                ScreenFiles.Remove(screenNumber);
-            }
-        }
-
-        public static int CompareCues(string cue1, string cue2)
-        {
-            // Splitting numeric and alphabetical portions of the strings
-            var match1 = CueNumberRegex().Match(cue1);
-            var match2 = CueNumberRegex().Match(cue2);
-
-            if (match1.Success && match2.Success)
-            {
-                int number1 = int.Parse(match1.Groups[1].Value);
-                int number2 = int.Parse(match2.Groups[1].Value);
-
-                int comparison = number1.CompareTo(number2);
-                if (comparison == 0) // If numbers are equal, compare the letters
-                {
-                    return string.Compare(match1.Groups[2].Value, match2.Groups[2].Value, StringComparison.OrdinalIgnoreCase);
-                }
-                return comparison;
-            }
-            throw new FormatException("The cues are not in the expected format.");
-        }
-        public int FetchNum()
-        {
-            return int.Parse(CueNumberRegex().Match(Number).Groups[1].Value);
-        }
-        public char FetchAlpha()
-        {
-            var x = CueNumberRegex().Match(Number).Groups[2].Value.FirstOrDefault();
-            if(x == default(char)) x = (char)('a' - 1);
-            return  x;
-        }
-        // Overloading the < operator
-        public static bool operator <(Cue c1, Cue c2)
-        {
-            return CompareCues(c1.Number, c2.Number) < 0;
-        }
-
-        // Overloading the <= operator
-        public static bool operator <=(Cue c1, Cue c2)
-        {
-            return CompareCues(c1.Number, c2.Number) <= 0;
-        }
-        public static bool operator >(Cue c1, Cue c2)
-        {
-            return CompareCues(c1.Number, c2.Number) > 0;
-        }
-        public static bool operator >=(Cue c1, Cue c2)
-        {
-            return CompareCues(c1.Number, c2.Number) >= 0;
-        }
-
-        [System.Text.RegularExpressions.GeneratedRegex("(\\d+)([a-zA-Z]*)")]
-        private static partial System.Text.RegularExpressions.Regex CueNumberRegex();
     }
 }

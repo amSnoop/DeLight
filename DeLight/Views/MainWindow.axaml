@@ -52,7 +52,7 @@
 					<RowDefinition Height="Auto" />
 					<RowDefinition Height="*" />
 				</Grid.RowDefinitions>
-				<TextBlock Classes="Title" >Cue List</TextBlock>
+				<TextBlock Classes="Title">Cue List</TextBlock>
 				<StackPanel VerticalAlignment="Stretch" Grid.Row="1">
 					<ListBox x:Name="CueList" Grid.Row="1" ItemsSource="{Binding Cues}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0" Padding="0" SelectedItem="{Binding SelectedCue, Mode=TwoWay}" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
 						<ListBox.Styles>
@@ -112,7 +112,7 @@
 												<Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
 											</Style>
 											<Style Selector="Border.error">
-												<Setter Property="Background" Value="#56211d" />
+												<Setter Property="Background" Value="{StaticResource ErrorBG}" />
 											</Style>
 											<Style Selector="Border.active">
 												<Setter Property="Background" Value="{StaticResource AccentBrush}" />
@@ -129,10 +129,10 @@
 												<ColumnDefinition Width="Auto" />
 												<ColumnDefinition Width="*" />
 											</Grid.ColumnDefinitions>
-											<TextBlock Grid.Column="0" Margin="10,0" HorizontalAlignment="Left" Text="{Binding Cue.Number}" Classes="CueListContent" Classes.error="{Binding Error}" Classes.disabled="{Binding Disabled}">
+											<TextBlock Grid.Column="0" Margin="10,0" HorizontalAlignment="Left" Text="{Binding Number}" Classes="CueListContent" Classes.error="{Binding Error}" Classes.disabled="{Binding Disabled}">
 												<TextBlock.Styles>
 													<Style Selector="TextBlock.error">
-														<Setter Property="Foreground" Value="#F33" />
+														<Setter Property="Foreground" Value="{StaticResource ErrorFG}" />
 													</Style>
 													<Style Selector="TextBlock.disabled">
 														<Setter Property="Foreground" Value="{StaticResource TextDisabled}" />
@@ -142,7 +142,7 @@
 											<TextBlock Grid.Column="1" HorizontalAlignment="Left" Text="{Binding Cue.Note}" TextTrimming="CharacterEllipsis" Classes="CueListContent" Classes.error="{Binding Error}" Classes.disabled="{Binding Disabled}">
 												<TextBlock.Styles>
 													<Style Selector="TextBlock.error">
-														<Setter Property="Foreground" Value="#F33" />
+														<Setter Property="Foreground" Value="{StaticResource ErrorFG}" />
 													</Style>
 													<Style Selector="TextBlock.disabled">
 														<Setter Property="Foreground" Value="{StaticResource TextDisabled}" />

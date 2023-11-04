@@ -46,25 +46,23 @@ namespace DeLight.Utilities
             VideoWindow = videoWindow;
             Timer = new System.Timers.Timer(GlobalSettings.TickRate);
             Timer.Elapsed += Timer_Tick;
-            LightCue l = new(cue.LightScene);
+            LightCue l = new(cue.LightFile);
             VisualCues.Add(l);
-            foreach (var sf in cue.ScreenFiles.Values)
-            {
-                IRunnableScreenCue cme;
-                if (sf.ErrorState != FileErrorState.None)
-                    cme = new BlackoutVisualCue(new() { FadeInDuration = sf.FadeInDuration });
-                else if (sf is BlackoutScreenFile bof)
-                    cme = new BlackoutVisualCue(bof); //extends Border
-                else if (sf is VideoFile vf)
-                    cme = new VideoMediaElement(vf);
-                else if (sf is ImageFile imgf)
-                    cme = new ImageMediaElement(imgf); //extends CustomMediaElement
-                else
-                    throw new Exception("Unknown VisualCue type: " + sf.GetType());
-                VideoWindow?.Container.Children.Add(cme.GetUIElement());//can't just add an IRunnableScreenCue to the layout
-                VisualCues.Add(cme);
-                cme.FadedIn += VisualCueFadedIn;
-            }
+            var sf = cue.ScreenFile;
+            IRunnableScreenCue cme;
+            if (sf.ErrorState != FileErrorState.None)
+                cme = new BlackoutVisualCue(new() { FadeInDuration = sf.FadeInDuration });
+            else if (sf is BlackoutScreenFile bof)
+                cme = new BlackoutVisualCue(bof); //extends Border
+            else if (sf is VideoFile vf)
+                cme = new VideoMediaElement(vf);
+            else if (sf is ImageFile imgf)
+                cme = new ImageMediaElement(imgf); //extends CustomMediaElement
+            else
+                throw new Exception("Unknown VisualCue type: " + sf.GetType());
+            VideoWindow?.Container.Children.Add(cme.GetUIElement());//can't just add an IRunnableScreenCue to the layout
+            VisualCues.Add(cme);
+            cme.FadedIn += VisualCueFadedIn;
             FadedOut += OnFadedOut;
             Console.WriteLine(cue.CueEndAction);
         }

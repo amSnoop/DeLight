@@ -37,10 +37,11 @@ namespace DeLight.ViewModels
         private bool active;
         [ObservableProperty]
         private bool error;
-
         public event EventHandler<CueListContextMenuButtonClickedEventArgs>? ButtonClicked;
 
         public bool Disabled => Cue?.Disabled ?? true;
+
+        public string Number => Cue?.Number.ToString() + Cue?.Letter ?? "!";
 
         public CueListCueViewModel(Cue? cue) : base(cue)
         {
@@ -80,11 +81,8 @@ namespace DeLight.ViewModels
 
         private bool CheckCueErrorState()
         {
-            if (Cue?.LightScene.ErrorState != FileErrorState.None)
+            if (Cue?.LightFile.ErrorState != FileErrorState.None || Cue?.ScreenFile.ErrorState != FileErrorState.None)
                 return true;
-            foreach (var file in Cue.ScreenFiles.Values.ToList())
-                if (file.ErrorState != FileErrorState.None)
-                    return true;
             return false;
         }
         public override void OnCuePropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -92,6 +90,8 @@ namespace DeLight.ViewModels
             if (sender == Cue)
                 if (e.PropertyName == nameof(Cue.Disabled))
                     OnPropertyChanged(nameof(Disabled));
+            else if (e.PropertyName == nameof(Cue.Number) || e.PropertyName == nameof(Cue.Letter))
+                    OnPropertyChanged(nameof(Number));
         }
     }
 }

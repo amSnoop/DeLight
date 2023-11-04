@@ -57,7 +57,9 @@ namespace DeLight.ViewModels
 
         [ObservableProperty]
         private CuePlaybackViewModel? cuePlaybackViewModel;
-        public ObservableCollection<CueListCueViewModel> Cues { get; set; }
+
+        [ObservableProperty]
+        private ObservableCollection<CueListCueViewModel> cues;
 
         [ObservableProperty]
         public CueListCueViewModel? selectedCue;
@@ -81,7 +83,16 @@ namespace DeLight.ViewModels
                 value.Selected = true;
         }
 
-
+        public void ShowRunner_Sorted(object? sender, EventArgs e)
+        {
+            var selCue = SelectedCue?.Cue;
+            Cues.Clear();
+            foreach (var cue in showRunner.Show.Cues)
+            {
+                Cues.Add(new CueListCueViewModel(cue));
+            }
+            SelectedCue = Cues.FirstOrDefault(c => c.Cue == selCue);
+        }
         public void ShowRunner_OnLoaded(object? sender, EventArgs e)
         {
             Cues.Clear();
@@ -90,6 +101,7 @@ namespace DeLight.ViewModels
                 Cues.Add(new CueListCueViewModel(cue));
             }
             CuePlaybackViewModel = new CuePlaybackViewModel(showRunner.Show.Cues.FirstOrDefault());
+            showRunner.Sorted += ShowRunner_Sorted;
         }
 
         public void ShowRunner_CueChanged(object? sender, CueChangedEventArgs e)
@@ -218,15 +230,10 @@ namespace DeLight.ViewModels
                 showRunner.DeleteCue(cue);
         }
 
-        public void InsertCue(Cue? cue, bool useLetters)
+        public void InsertCue(Cue? cue)
         {
             if (cue != null)
-                showRunner.AddCue(cue, useLetters);
-        }
-        public void UpdateCue(Cue? cue, bool useLetters)
-        {
-            if (cue != null)
-                showRunner.UpdateCue(cue, useLetters);
+                showRunner.AddCue(cue);
         }
     }
 
