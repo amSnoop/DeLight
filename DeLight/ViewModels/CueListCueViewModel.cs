@@ -92,6 +92,7 @@ namespace DeLight.ViewModels
                     OnPropertyChanged(nameof(Disabled));
             else if (e.PropertyName == nameof(Cue.Number) || e.PropertyName == nameof(Cue.Letter))
                     OnPropertyChanged(nameof(Number));
+            Error = CheckCueErrorState();
         }
     }
 }

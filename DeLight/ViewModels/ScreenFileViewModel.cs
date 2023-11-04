@@ -36,7 +36,7 @@ namespace DeLight.ViewModels
         public string ReasonString => FileErrorState.None != File.ErrorState ? $"{File.ErrorState}" : friendlyName[File.GetType()];
 
         public string Header => $"{HeaderStart}{HeaderEnd}";
-        private void OnPathChanged(string s)
+        protected override void OnPathChanged(string s)
         {
             var file = (ScreenFile)File;
             if (string.IsNullOrEmpty(s))
@@ -52,9 +52,11 @@ namespace DeLight.ViewModels
             File = UpdateFileType();
             if (f != File)
             {
+                file.PropertyChanged += (s, e) => { if (s is ScreenFile f) OnPathChanged(f.FilePath); };
                 OnFileTypeChanged(this);
             }
             OnPropertyChanged(nameof(Header));
+            base.OnPathChanged(s);
         }
         private ScreenFile UpdateFileType()
         {

@@ -18,13 +18,35 @@ namespace DeLight.ViewModels
         [NotifyPropertyChangedFor(nameof(FormattedCurrentTime))]
         private double currentTime;
 
+        [ObservableProperty]
+        private bool isSeeking = false;
+        public bool SendPlay = false;
         public CuePlaybackViewModel(Cue? cue) : base(cue)
         {
             if (cue != null)
                 cue.PropertyChanged += OnCuePropertyChanged;
             PropertyChanged += CueObjectChanged;
+            Messenger.CueTick += OnCueTick;
         }
-
+        private void OnCueTick(object? sender, CueTickEventArgs e)
+        {
+            if (Cue != null)
+            {
+                CurrentTime = e.CurTime;
+                RealDuration = e.Duration;
+            }
+        }
+        partial void OnIsSeekingChanged(bool value)
+        {
+            SendPlay = !IsSeeking;
+            if (!IsSeeking)
+                Messenger.SendSeekTo(CurrentTime, SendPlay);
+        }
+        partial void OnCurrentTimeChanged(double value)
+        {
+            if (Cue != null && IsSeeking)
+                Messenger.SendSeekTo(CurrentTime, SendPlay);
+        }
         private void CueObjectChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(Cue) && Cue != null)
@@ -41,15 +63,17 @@ namespace DeLight.ViewModels
         public double FadeInTime => Cue?.FadeInTime ?? GlobalSettings.Instance.DefaultCue.FadeInTime;
         public double FadeOutTime => Cue?.FadeOutTime ?? GlobalSettings.Instance.DefaultCue.FadeOutTime;
         public string FormattedDuration => " / " + TimeSpan.FromSeconds(RealDuration).ToString(@"hh\:mm\:ss");
-        public double Volume {
-              get => Cue?.Volume ?? GlobalSettings.Instance.DefaultCue.Volume;
+        public double Volume
+        {
+            get => Cue?.Volume ?? GlobalSettings.Instance.DefaultCue.Volume;
             set
             {
                 if (value < 0)
                     value = 0;
-                if(value > 1)
+                if (value > 1)
                     value = 1;
-                if (Cue != null) {
+                if (Cue != null)
+                {
                     Cue.Volume = value;
                     OnPropertyChanged(nameof(Volume));
                 }
@@ -67,6 +91,6 @@ namespace DeLight.ViewModels
             OnPropertyChanged(nameof(FormattedDuration));
         }
 
-        
+
     }
 }

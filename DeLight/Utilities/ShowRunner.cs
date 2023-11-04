@@ -49,8 +49,6 @@ namespace DeLight.Utilities
 
         public event EventHandler? OnLoaded, Sorted;
 
-        public event EventHandler<CueChangedEventArgs>? CueChanged;
-
         public ShowRunner(Show show)
         {
             Show = show;
@@ -64,14 +62,15 @@ namespace DeLight.Utilities
                     VideoWindow = new VideoWindow();
                 });
             }
+            Messenger.SeekTo += (time, play) => SeekTo(time, play);
         }
 
         public void PrepareCues()
         {
             foreach (Cue cue in Show.Cues)
             {
-                cue.LightFile = LightFile.CheckLightFile(cue.LightFile);
-                cue.ScreenFile =  ScreenFile.ConvertCueFile(cue.ScreenFile);
+                cue.SetLightFile(LightFile.CheckLightFile(cue.LightFile));
+                cue.SetScreenFile(ScreenFile.ConvertCueFile(cue.ScreenFile));
                 cue.PropertyChanged += Cue_PropertyChanged;
             }
             OnLoaded?.Invoke(this, EventArgs.Empty);
@@ -90,6 +89,7 @@ namespace DeLight.Utilities
             ShowVideoWindow();
             CueRunner newCueRunner = new(cue, VideoWindow);
             ActiveCue = newCueRunner;
+            Messenger.ActiveCue = newCueRunner.Cue;
             newCueRunner.FadedIn += FadedIn;
             newCueRunner.FadedOut += (sender, e) => OldCues.Remove((CueRunner)sender!);
             newCueRunner.Play();
@@ -102,6 +102,7 @@ namespace DeLight.Utilities
             foreach (CueRunner cueRunner in OldCues.ToList())
                 cueRunner.Stop();
             OldCues.Clear();
+            ActiveCue = null;
         }
 
         public void Pause()
@@ -116,16 +117,15 @@ namespace DeLight.Utilities
             foreach (CueRunner cueRunner in OldCues.ToList())
                 cueRunner.Unpause();
         }
-        public void SeekTo(int tick)
+        public void SeekTo(double time, bool play)
         {
             foreach (CueRunner cueRunner in OldCues.ToList())//temporary fix for seeking
             {
                 OldCues.Remove(cueRunner);
                 cueRunner.Stop();
             }
-            ActiveCue?.SeekTo(tick);
+            ActiveCue?.SeekTo(time, play);
         }
-
         public void AddCue(Cue cue)
         {
             Show.Cues.Add(cue);

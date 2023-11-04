@@ -77,6 +77,8 @@
 			<Setter Property="Foreground" Value="{StaticResource TextBaseBrush}" />
 			<Setter Property="HorizontalAlignment" Value="Center" />
 		</Style>
+		
+		
 		<Style Selector="TextBlock.SubTitle">
 			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>
 			<Setter Property="FontSize" Value="{Binding $parent[Window].DataContext.SubtitleFontSize}" />
@@ -103,6 +105,22 @@
 		</Style>
 		<Style Selector="ComboBox:disabled TextBlock">
 			<Setter Property="Foreground" Value="{StaticResource TextDisabled}" />
+		</Style>
+		
+		
+		<Style Selector="Expander">
+			<Setter Property="CornerRadius" Value="0" />
+			<Style Selector="^:expanded">
+				<Setter Property="Margin" Value="0,0,0,10" />
+			</Style>
+			<Style Selector="^.Error ToggleButton > Border">
+				<Setter Property="Background" Value="{StaticResource ErrorBG}" />
+				<Setter Property="BorderBrush" Value="{StaticResource ErrorFG}" />
+			</Style>
+			
+			<Style Selector="^.Error ToggleButton TextBlock">
+				<Setter Property="Foreground" Value="{StaticResource ErrorFG}" />
+			</Style>
 		</Style>
 	</Application.Styles>
 

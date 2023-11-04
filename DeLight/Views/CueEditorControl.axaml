@@ -52,15 +52,9 @@
 			</Grid>
 			<ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,10,0,0" >
 				<ItemsControl Background="#090909" ItemsSource="{Binding Cues}">
-					<ItemsControl.Styles>
-						<Style Selector="Expander:expanded">
-							<Setter Property="BorderBrush" Value="#D345A4" />
-							<Setter Property="Margin" Value="0,0,0,10" />
-						</Style>
-					</ItemsControl.Styles>
 					<ItemsControl.ItemTemplate>
 						<DataTemplate>
-							<Expander IsExpanded="True" BorderBrush="White" Header="{Binding Header}" Foreground="#D345A4" HorizontalAlignment="Stretch">
+							<Expander IsExpanded="True" Classes.Error="{Binding IsError}" BorderBrush="White" Header="{Binding Header}" Foreground="#D345A4" HorizontalAlignment="Stretch">
 								<Grid Grid.Row="2" Grid.Column="1" x:Name="DefaultCueDisplay">
 									<Grid.RowDefinitions>
 										<RowDefinition Height="*" />

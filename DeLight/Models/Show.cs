@@ -64,42 +64,33 @@ namespace DeLight.Models
         public static Show LoadTestShow()
         {
             Show show = new("Test Show", "testshow.json", new List<Cue>());
-            show.Cues.Add(new Cue()
+            show.Cues.Add(new Cue("C:\\Users\\Snoopy\\Videos\\Halo  The Master Chief Collection\\cutscene example.mp4")
             {
                 Number = 1,
                 Note = "This was a triumph",
-                ScreenFile = new() {
-                    FilePath = "C:\\Users\\Snoopy\\Videos\\Halo  The Master Chief Collection\\cutscene example.mp4"
-                },
                 CueEndAction = EndAction.FadeBeforeEnd
 
             });
-            show.Cues.Add(new Cue()
+            show.Cues.Add(new Cue("C:\\Users\\Snoopy\\Videos\\Halo  The Master Chief Collection\\elite dont give a fuck.mp4")
             {
                 Number = 2,
                 Note = "I'm leaving a note here:",
-                ScreenFile = new() {
-                        FilePath = "C:\\Users\\Snoopy\\Videos\\Halo  The Master Chief Collection\\elite dont give a fuck.mp4",
-                },
                 CueEndAction = EndAction.Loop
             });
-            show.Cues.Add(new Cue()
+            show.Cues.Add(new Cue(@"C:\Users\Snoopy\Downloads\WCHB.mp4")
             {
                 Number = 3,
                 Note = "Huge success!",
-                ScreenFile = new() { FilePath = @"C:\Users\Snoopy\Downloads\WCHB.mp4" },
             });
-            show.Cues.Add(new Cue()
+            show.Cues.Add(new Cue("C:\\Users\\Snoopy\\Pictures\\4k-space-wallpaper-1.jpg")
             {
                 Number = 4,
                 Note = "It's hard to overstate my satisfaction.",
-                ScreenFile = new() { FilePath = "C:\\Users\\Snoopy\\Pictures\\4k-space-wallpaper-1.jpg" },
             });
-            show.Cues.Add(new Cue()
+            show.Cues.Add(new Cue("\"C:\\Users\\Snoopy\\Pictures\\4k-space-wallpaper-1.jpg\"")
             {
                 Number = 5,
                 Note = "Aperture Science",
-                ScreenFile = new() { FilePath = "\"C:\\Users\\Snoopy\\Pictures\\4k-space-wallpaper-1.jpg\"" },
             });
             show.Cues.Add(new Cue()
             {

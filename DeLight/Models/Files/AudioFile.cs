@@ -9,7 +9,6 @@ namespace DeLight.Models.Files
         [ObservableProperty]
         private double volume;
 
-
         public AudioFile()
         {
             Volume = 1;

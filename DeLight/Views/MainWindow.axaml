@@ -16,7 +16,7 @@
         Background="#000"
         BorderBrush="White"
         BorderThickness="1"
-		x:CompileBindings="True">
+		x:CompileBindings="False">
 
 	<Grid Margin="0">
 		<Grid.RowDefinitions>
@@ -182,10 +182,10 @@
 					<RowDefinition Height="Auto" />
 				</Grid.RowDefinitions>
 				<!--Play/Pause/Stop/Seek Slider/Time Passed/TotalTime-->
-				<Slider Grid.Column="0" Margin="5,5,5,5" Grid.ColumnSpan="19" Minimum="0" Maximum="100" />
-				<Button Grid.Column="0" Content="Play" Margin="5,5,5,5" Grid.Row="1" Command=""/>
-				<Button Grid.Column="1" Content="Pause" Margin="5,5,5,5" Grid.Row="1"/>
-				<Button Grid.Column="2" Content="Stop" Margin="5,5,5,5" Grid.Row="1" Command=""/>
+				<Slider x:Name="PlayBackSlider" Grid.Column="0" Margin="5,5,5,5" Grid.ColumnSpan="19" Minimum="0" Maximum="{Binding RealDuration}" Value="{Binding CurrentTime}" />
+				<Button Grid.Column="0" Content="Play" Margin="5,5,5,5" Grid.Row="1" Click="Play_Button_Clicked"/>
+				<Button Grid.Column="1" Content="Pause" Margin="5,5,5,5" Grid.Row="1" Click="Pause_Button_Clicked"/>
+				<Button Grid.Column="2" Content="Stop" Margin="5,5,5,5" Grid.Row="1" Click="Stop_Button_Clicked"/>
 				<Slider Grid.Column="3" Grid.Row ="1"  Minimum="0" Maximum="1" VerticalAlignment="Center" Value="{Binding Volume}" />
 				<TextBlock Grid.Column="5" Grid.Row="1" Text="{Binding FormattedNumber}" Foreground="{StaticResource TextAltBrush}" Classes="Title"  />
 				<TextBlock Grid.Column="6" Grid.Row="1" Text="{Binding Note}" Classes="Title"  />
@@ -222,11 +222,12 @@
 
 
 				<TextBlock Grid.Row="1" Text="Output Screen:" VerticalAlignment="Center"/>
-				<ComboBox x:Name="MonitorSelector" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" ItemsSource="{Binding Monitors}" SelectedIndex="0" SelectedItem="{Binding SelectedMonitor}"/>
+				<ComboBox x:Name="MonitorSelector" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" DataContext="{Binding Path=DataContext, 
+    RelativeSource={RelativeSource AncestorType=Window}}" VerticalAlignment="Center" ItemsSource="{Binding Monitors}" SelectedIndex="0" SelectedItem="{Binding SelectedMonitor}" />
 
 
-				<TextBlock Grid.Row="2" Text="Audio Device:" VerticalAlignment="Center"/>
-				<ComboBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+				<TextBlock Grid.Row="2" Text="Audio Device:" VerticalAlignment="Center" IsEnabled="False"/>
+				<ComboBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" IsEnabled="False" />
 
 
 				<TextBlock Grid.Row="3" Text="Show Path:" VerticalAlignment="Center"/>
@@ -235,8 +236,8 @@
 						<ColumnDefinition Width="*"/>
 						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
-					<TextBox Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="This was not a Triumph" />
-					<Button Grid.Column="1" Content=" . . . " VerticalAlignment="Center" FontSize="{Binding BodyFontSize}" />
+					<TextBox Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding LastShowPath}" />
+					<Button Grid.Column="1" Content=" . . . " VerticalAlignment="Stretch" FontSize="{Binding BodyFontSize}" />
 				</Grid>
 
 
@@ -246,7 +247,7 @@
 						<ColumnDefinition Width="*"/>
 						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
-					<TextBox Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="VideoDirectory" />
+					<TextBox Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding VideoDirectory}" />
 					<Button Grid.Column="1" Content=" . . . " VerticalAlignment="Center" FontSize="{Binding BodyFontSize}" />
 				</Grid>
 
@@ -257,7 +258,7 @@
 						<ColumnDefinition Width="*"/>
 						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
-					<TextBox Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="LightShowDirectory" />
+					<TextBox Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding LightShowDirectory}" />
 					<Button Grid.Column="1" Content=" . . . " VerticalAlignment="Center" FontSize="{Binding BodyFontSize}" />
 				</Grid>
 			</Grid>
@@ -266,47 +267,6 @@
 			<Border Grid.Row="3">
 				<TextBlock Text="Controls" Classes="Title"  TextWrapping="WrapWithOverflow"/>
 			</Border>
-			<!--<Grid Grid.Row="4" x:Name="DefaultCueDisplay">
-				<Grid.RowDefinitions>
-					<RowDefinition Height="*" />
-					<RowDefinition Height="*" />
-					<RowDefinition Height="*" />
-					<RowDefinition Height="*" />
-					<RowDefinition Height="*" />
-					<RowDefinition Height="*" />
-					<RowDefinition Height="*" />
-					<RowDefinition Height="*" />
-					<RowDefinition Height="*" />
-				</Grid.RowDefinitions>
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="*" />
-					<ColumnDefinition Width="*" />
-				</Grid.ColumnDefinitions>
-
-				<TextBlock Grid.Row="1" Text="Fade In:" VerticalAlignment="Center"/>
-				<TextBox Grid.Row="1" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding FadeInTime}" />
-
-				<TextBlock Grid.Row="2" Text="Fade Out:" VerticalAlignment="Center"/>
-				<TextBox Grid.Row="2" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding FadeOutTime}" />
-
-				<TextBlock Grid.Row="3" Text="Duration:" VerticalAlignment="Center"/>
-				<TextBox Grid.Row="3" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Duration}" />
-
-				<TextBlock Grid.Row="4" Text="Loop Cue:" VerticalAlignment="Center"/>
-				<CheckBox Grid.Row="4" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" IsChecked="False"/>
-
-				<TextBlock Grid.Row="5" Text="Volume:" VerticalAlignment="Center"/>
-				<Slider Grid.Row="5" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Maximum="1" Minimum="0" TickFrequency="0.01" Value="{Binding Volume}"/>
-
-				<TextBlock Grid.Row="6" Text="Fade In Behavior:" VerticalAlignment="Center"/>
-				<ComboBox Grid.Row="6" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" SelectedValue="{Binding FadeType, Mode=TwoWay}" ItemsSource="{Binding DataContext.FadeTypeStrings, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
-
-				<TextBlock Grid.Row="7" Text="Light Scene End Action:" VerticalAlignment="Center"/>
-				<ComboBox Grid.Row="7" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"  SelectedValue="{Binding LightScene.EndAction, Mode=TwoWay}" ItemsSource="{Binding DataContext.EndActionStrings, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
-
-				<TextBlock Grid.Row="8" Text="Video End Action:" VerticalAlignment="Center"/>
-				<ComboBox Grid.Row="8" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"  SelectedValue="{Binding ScreenFiles.Values[0].EndAction, Mode=TwoWay}" ItemsSource="{Binding DataContext.EndActionStrings, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
-			</Grid>-->
 		</Grid>
 	</Grid>
 </Window>

@@ -53,7 +53,7 @@ namespace DeLight.ViewModels
         [ObservableProperty]
         private string selectedMonitor = "";
         [ObservableProperty]
-        private List<string> monitors = new();
+        private ObservableCollection<string> monitors = new();
 
         [ObservableProperty]
         private CuePlaybackViewModel? cuePlaybackViewModel;
@@ -71,7 +71,6 @@ namespace DeLight.ViewModels
             ConfigureMonitorDisplay();
             Cues = new();
             showRunner.OnLoaded += ShowRunner_OnLoaded;
-            showRunner.CueChanged += ShowRunner_CueChanged;
             showRunner.PrepareCues();
         }
 
@@ -104,37 +103,11 @@ namespace DeLight.ViewModels
             showRunner.Sorted += ShowRunner_Sorted;
         }
 
-        public void ShowRunner_CueChanged(object? sender, CueChangedEventArgs e)
-        {
-            if (e.ActionTaken == CueChangedEventArgs.ChangeType.Added)
-            {
-                if (e.Index < Cues.Count)
-                {
-                    Cues.Insert(e.Index, new CueListCueViewModel(e.Cue));
-                }
-                else
-                {
-                    Cues.Add(new CueListCueViewModel(e.Cue));
-                }
-            }
-            else if (e.ActionTaken == CueChangedEventArgs.ChangeType.Deleted)
-            {
-                foreach (var cue in Cues)
-                {
-                    if (cue.Cue == e.Cue)
-                    {
-                        Cues.Remove(cue);
-                        break;
-                    }
-                }
-            }
-        }
-
         #region Monitor Selection
         private void ConfigureMonitorDisplay()
         {
             _screenObjects = Screen.AllScreens.ToList();
-            Monitors = _screenObjects.Select((s, i) => $"Monitor {i + 1}: {s.Bounds.Width}x{s.Bounds.Height}").ToList();
+            Monitors = new(_screenObjects.Select((s, i) => $"Monitor {i + 1}: {s.Bounds.Width}x{s.Bounds.Height}"));
             if (Screen.PrimaryScreen == null)
             {
                 SelectedMonitor = Monitors.FirstOrDefault() ?? "";
@@ -152,7 +125,7 @@ namespace DeLight.ViewModels
         {
             var screen = selectedScreen;
             _screenObjects = Screen.AllScreens.ToList();
-            Monitors = _screenObjects.Select((s, i) => $"Monitor {i + 1}: {s.Bounds.Width}x{s.Bounds.Height}").ToList();
+            Monitors = new(_screenObjects.Select((s, i) => $"Monitor {i + 1}: {s.Bounds.Width}x{s.Bounds.Height}"));
             if (screen != null)
                 SelectedMonitor = Monitors[_screenObjects.IndexOf(screen)];
             else
@@ -209,9 +182,9 @@ namespace DeLight.ViewModels
         {
             showRunner.Unpause();
         }
-        public void SeekTo(int tick)
+        public void SeekTo(double time, bool play)
         {
-            showRunner.SeekTo(tick);
+            showRunner.SeekTo(time, play);
         }
 
         public void HideVideoWindow()

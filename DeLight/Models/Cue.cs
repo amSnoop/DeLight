@@ -1,33 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using DeLight.Models.Files;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Forms;
+using System.Runtime.CompilerServices;
 
 namespace DeLight.Models
 {
-    public enum CueType
-    {
-        Blackout,
-        VidOnly,
-        ImgOnly,
-        VidLight,
-        ImgLight,
-        LightOnly,
-        WARNING
-    }
     public enum EndAction
     {
         Loop,
         FadeAfterEnd,
         FadeBeforeEnd,
         Freeze,
-    }
-    public enum FadeType
-    {
-        ShowXPress,
-        FadeOver,
     }
 
 
@@ -52,13 +34,9 @@ namespace DeLight.Models
         [ObservableProperty]
         private double duration;
         [ObservableProperty]
-        private FadeType fadeType;//TODO: Implement FadeType
-        [ObservableProperty]
         private EndAction cueEndAction;
-        [ObservableProperty]
-        private ScreenFile screenFile;
-        [ObservableProperty]
-        private LightFile lightFile;
+        public ScreenFile ScreenFile { get; private set; }
+        public LightFile LightFile { get; private set; }
         [ObservableProperty]
         private bool disabled;
 
@@ -73,9 +51,15 @@ namespace DeLight.Models
             note = "New Cue";
             duration = 0;
             cueEndAction = EndAction.FadeAfterEnd;
-            fadeType = FadeType.FadeOver;
-            screenFile = new BlackoutScreenFile();
-            lightFile = new BlackoutLightFile();
+            ScreenFile = new BlackoutScreenFile();
+            LightFile = new BlackoutLightFile();
+        }
+        public Cue(string s) : this()
+        {
+            ScreenFile = new()
+            {
+                FilePath = s
+            };
         }
 
         public int CompareNum(Cue? c2)
@@ -85,6 +69,25 @@ namespace DeLight.Models
             if (Number == c2.Number && Letter == c2.Letter)
                 return 0;
             return -1;
+        }
+        public void SetScreenFile(ScreenFile file)
+        {
+            ScreenFile = file;
+            file.PropertyChanged += (s, e) => OnFilePropertyChanged(file);
+            OnPropertyChanged(nameof(ScreenFile));
+        }
+
+        public void SetLightFile(LightFile file)
+        {
+            LightFile = file;
+            file.PropertyChanged += (s, e) => OnFilePropertyChanged(file);
+            OnPropertyChanged(nameof(LightFile));
+        }
+
+        private void OnFilePropertyChanged(CueFile file)
+        {
+            OnPropertyChanged(nameof(ScreenFile));
+            OnPropertyChanged(nameof(LightFile));
         }
     }
 }

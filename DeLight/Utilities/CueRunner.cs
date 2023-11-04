@@ -37,7 +37,7 @@ namespace DeLight.Utilities
         public int LoopCount { get; set; } = 0;
         public int ElapsedTicks { get; set; } = 0;
         public double ElapsedTime { get => ElapsedTicks * GlobalSettings.TickRate / 1000.0; }
-        public double RealDuration { get; set; } = 0;//
+        public double RealDuration { get; set; } = 0;
 
 
         public CueRunner(Cue cue, VideoWindow? videoWindow)
@@ -100,6 +100,7 @@ namespace DeLight.Utilities
                         End();
                 }
             });
+            Messenger.SendCueTick(Cue, new(ElapsedTime, RealDuration));
         }
         public void End()
         {
@@ -120,6 +121,7 @@ namespace DeLight.Utilities
                 if (vc is IRunnableScreenCue cme)
                     VideoWindow?.Container.Children.Remove(cme.GetUIElement());
             }
+            Cue.IsActive = false;
         }
 
         public void VisualCueFadedIn(object? sender, EventArgs e)
@@ -186,8 +188,9 @@ namespace DeLight.Utilities
             OnFadedOut(this, EventArgs.Empty);
         }
 
-        public void SeekTo(int tick, bool play = false)
+        public void SeekTo(double time, bool play = false)
         {
+            int tick = (int)(time * 1000 / GlobalSettings.TickRate);
             ElapsedTicks = tick;
             foreach (var vc in VisualCues)
             {

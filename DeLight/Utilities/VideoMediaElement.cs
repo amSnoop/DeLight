@@ -1,12 +1,7 @@
 ﻿using DeLight.Models.Files;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media.Animation;
-using System.Windows;
 using DeLight.Models;
+using System.Threading.Tasks;
 
 namespace DeLight.Utilities
 {
@@ -57,7 +52,14 @@ namespace DeLight.Utilities
                     FadeOut(time);
             }
             else
+            {
+                double vol = Volume;
+                Volume = 0;
+                Play();
+                System.Threading.Thread.Sleep(1);//This is a hack to get around a bug where the video will not seek to the correct position if it is not playing
                 Pause();
+                Volume = vol;
+            }
         }
         public override void SendTimeUpdate(double time)
         {

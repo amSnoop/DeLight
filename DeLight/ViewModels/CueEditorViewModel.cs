@@ -43,7 +43,7 @@ namespace DeLight.ViewModels
             this.cue = cue;
             number = cue.Number;
             duration = cue.Duration;
-            volume = (int)Math.Round(cue.Volume) * 100;
+            volume = (int)Math.Round(cue.Volume * 100);
             lightFile = new(cue.LightFile);
             screenFile = new(cue.ScreenFile);
             lightFile.FileTypeChanged += (s, e) => OnFileTypeChanged(((LightFileViewModel)s!).File);
@@ -56,9 +56,9 @@ namespace DeLight.ViewModels
         private void OnFileTypeChanged(CueFile f)
         {
             if (f is LightFile lf)
-                Cue.LightFile = lf;
+                Cue.SetLightFile(lf);
             else
-                Cue.ScreenFile = (ScreenFile)f;
+                Cue.SetScreenFile((ScreenFile)f);
         }
         public bool Validate(string propName, object value)
         {

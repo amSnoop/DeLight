@@ -31,6 +31,8 @@ namespace DeLight.Views
             {
                 DataContext = new MainWindowViewModel(new ShowRunner(Models.Show.LoadTestShow()));
             }
+            PlayBackSlider.AddHandler(PointerPressedEvent, Slider_PointerPressed, RoutingStrategies.Tunnel);
+            PlayBackSlider.AddHandler(PointerReleasedEvent, Slider_PointerReleased, RoutingStrategies.Tunnel);
         }
 
         private void Info_EditButtonClicked(object? sender, EditButtonClickedEventArgs e)
@@ -132,16 +134,21 @@ namespace DeLight.Views
                 count = 0;
         }
 
-        //private void Play_Button_Clicked(object sender, RoutedEventArgs e)
-        //{
-        //    if (DataContext is MainWindowViewModel viewModel)
-        //        viewModel.Play();
-        //}
-        //private void Stop_Button_Clicked(object sender, RoutedEventArgs e)
-        //{
-        //    if (DataContext is MainWindowViewModel viewModel)
-        //        viewModel.Stop();
-        //}
+        public void Play_Button_Clicked(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel viewModel)
+                viewModel.ResumeCue();
+        }
+        public void Stop_Button_Clicked(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel viewModel)
+                viewModel.StopCue();
+        }
+        public void Pause_Button_Clicked(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel viewModel)
+                viewModel.PauseCue();
+        }
 
         private void MainWindow_OnSizeChanged(object? sender, SizeChangedEventArgs e)
         {
@@ -149,6 +156,18 @@ namespace DeLight.Views
             {
                 vm.UpdateWindowSize(Bounds.Height);
             }
+        }
+
+        private void Slider_PointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if(DataContext is MainWindowViewModel vm && vm.CuePlaybackViewModel != null)
+                vm.CuePlaybackViewModel.IsSeeking = true;
+        }
+
+        private void Slider_PointerReleased(object? sender, PointerReleasedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel vm && vm.CuePlaybackViewModel != null)
+                vm.CuePlaybackViewModel.IsSeeking = false;
         }
     }
 }

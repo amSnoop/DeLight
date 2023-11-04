@@ -14,7 +14,7 @@ namespace DeLight.ViewModels
         public string HeaderEnd => File is BlackoutLightFile ? "Blackout" : ReasonString;
         public string ReasonString => FileErrorState.None != File.ErrorState ? $"{File.ErrorState}" : "Ready";
         public string Header => $"{HeaderStart}{HeaderEnd}";
-        private void OnPathChanged(string path)
+        protected override void OnPathChanged(string path)
         {
             var file = (LightFile)File;
             if (string.IsNullOrEmpty(path))
@@ -26,6 +26,7 @@ namespace DeLight.ViewModels
                     FadeOutDuration = file.FadeOutDuration,
                     EndAction = file.EndAction,
                 };
+                File.PropertyChanged += (s, e) => { if (s is LightFile f) OnPathChanged(f.FilePath); };
                 OnFileTypeChanged(this);
             }
             else if (file is BlackoutLightFile)
@@ -38,6 +39,7 @@ namespace DeLight.ViewModels
                     FadeOutDuration = file.FadeOutDuration,
                     EndAction = file.EndAction,
                 };
+                File.PropertyChanged += (s, e) => { if (s is LightFile f) OnPathChanged(f.FilePath); };
                 OnFileTypeChanged(this);
             }
             else
@@ -46,6 +48,7 @@ namespace DeLight.ViewModels
                 File.ErrorState = CheckErrorState(path);
             }
             OnPropertyChanged(nameof(Header));
+            base.OnPathChanged(path);
         }
 
         private static FileErrorState CheckErrorState(string path)

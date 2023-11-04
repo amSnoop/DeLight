@@ -19,12 +19,21 @@ namespace DeLight.ViewModels
 
         public event EventHandler? FileTypeChanged;
 
+        public bool IsError => File.ErrorState != FileErrorState.None;
         protected void OnFileTypeChanged(object? sender)
         {
             FileTypeChanged?.Invoke(sender, EventArgs.Empty);
         }
 
         public RelayCommand<Avalonia.Controls.Window> OpenFileDialog { get; }
+
+        protected virtual void OnPathChanged(string s)
+        {
+            OnPropertyChanged(nameof(FileName));
+            OnPropertyChanged(nameof(DurationVisibility));
+            OnPropertyChanged(nameof(VolumeVisibility));
+            OnPropertyChanged(nameof(IsError));
+        }
 
         public CueFileViewModel(CueFile file)
         {
