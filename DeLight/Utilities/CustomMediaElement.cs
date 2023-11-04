@@ -12,8 +12,8 @@ namespace DeLight.Utilities
     public abstract class CustomMediaElement : MediaElement, IRunnableScreenCue
     {
 
-        private TaskCompletionSource<bool> tcs = new();
-        private List<Storyboard> storyboards = new();
+        private readonly TaskCompletionSource<bool> tcs = new();
+        private readonly List<Storyboard> storyboards = new();
 
         public event EventHandler? FadedIn, FadedOut, PlaybackEnded;
 
@@ -59,8 +59,8 @@ namespace DeLight.Utilities
 
         #region Public Methods
         public virtual void Restart() { }
-        public virtual void SeekTo(double time) { }
-
+        public virtual void SeekTo(double time, bool p) { }
+        public virtual void SendTimeUpdate(double time) { }
         public new virtual void Play() { base.Play(); }
         public new virtual void Pause() { base.Pause(); }
         public new virtual void Stop() { base.Stop(); }

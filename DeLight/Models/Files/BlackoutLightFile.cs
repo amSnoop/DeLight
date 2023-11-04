@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DeLight.Interfaces;
 
 namespace DeLight.Models.Files
 {
-    public class BlackoutLightFile : LightFile
+    public class BlackoutLightFile : LightFile, IBlackoutFile
     {
-        public BlackoutReason Reason { get; set; }
-        public BlackoutLightFile(BlackoutReason reason)
+        public BlackoutLightFile()
         {
-            Reason = reason;
         }
     }
 }

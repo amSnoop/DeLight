@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using DeLight.Interfaces;
+using System.IO;
 
 namespace DeLight.Models.Files
 {
@@ -10,6 +11,24 @@ namespace DeLight.Models.Files
         public LightFile()
         {
             Duration = 0;
+        }
+
+        public static LightFile CheckLightFile(LightFile file)
+        {
+            var filePath = file.FilePath;
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                return new BlackoutLightFile();
+            }
+
+            if(!Path.Exists(filePath))
+                file.ErrorState = FileErrorState.InvalidPath;
+            else if (Path.GetExtension(filePath) != ".scex")
+                file.ErrorState = FileErrorState.InvalidFileType;
+            else
+                file.ErrorState = FileErrorState.None;
+            return file;
         }
     }
 }

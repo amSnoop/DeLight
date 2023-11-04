@@ -1,192 +1,16 @@
-﻿using Avalonia.Controls;
-using Avalonia.Platform.Storage;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using DeLight.Interfaces;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using DeLight.Models;
 using DeLight.Models.Files;
-using DeLight.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DeLight.ViewModels
 {
-    public enum ExpectedFileType
-    {
-        Image,
-        Video,
-        Gif,
-        Audio,
-        Blackout,
-        Lights
-    }
-    public partial class CueFileViewModel : ObservableObject
-    {
-        [ObservableProperty]
-        private string path;
-        [ObservableProperty]
-        private double volume;
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(DurationVisibility))]
-        [NotifyPropertyChangedFor(nameof(VolumeVisibility))]
-        [NotifyPropertyChangedFor(nameof(Header))]
-        private ExpectedFileType type;
-        [ObservableProperty]
-        private EndAction endAction;
-        [ObservableProperty]
-        private double fadeInTime;
-        [ObservableProperty]
-        private double fadeOutTime;
-        [ObservableProperty]
-        private double duration;
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(Header))]
-        private BlackoutReason reason;
 
-        private int _index;
-        public string HeaderStart => _index == 0 ? "Light Scene" : $"Projector {_index}";
-
-        public string HeaderEnd => ": " + (Type == ExpectedFileType.Lights ? "Ready" : Type.ToString());
-
-        public string ReasonString => Reason != BlackoutReason.EmptyPath ? $" ({Reason})" : "";
-
-        public string FileName => Path != null ? $" ({System.IO.Path.GetFileNameWithoutExtension(Path)})" : "";
-
-        public string Header => HeaderStart + HeaderEnd + (Type == ExpectedFileType.Blackout ? ReasonString : FileName);
-        public bool DurationVisibility => Type == ExpectedFileType.Lights || Type == ExpectedFileType.Image;
-
-        public bool VolumeVisibility => Type == ExpectedFileType.Video;
-
-
-        public RelayCommand<Window> OpenFileDialog { get; }
-
-        public CueFileViewModel(CueFile file, int index)
-        {
-            _index = index;
-            path = file.FilePath;
-            volume = file is VideoFile vf ? vf.Volume : 1;
-            endAction = file.EndAction;
-            fadeInTime = file.FadeInDuration;
-            fadeOutTime = file.FadeOutDuration;
-            duration = file is IDurationFile df ? df.Duration : 0;
-            OpenFileDialog = new(OpenFileDialogAsync);
-
-            if (file is AudioFile)
-                Type = ExpectedFileType.Audio;
-            else if (file is ScreenFile screenFile)
-            {
-                if (screenFile is VideoFile)
-                    Type = ExpectedFileType.Video;
-                else if (screenFile is GifFile)
-                    Type = ExpectedFileType.Gif;
-                else if (screenFile is ImageFile)
-                    Type = ExpectedFileType.Image;
-                else if (screenFile is BlackoutScreenFile bsf)
-                {
-                    Type = ExpectedFileType.Blackout;
-                    reason = bsf.Reason;
-                }
-                else
-                    throw new Exception("Invalid ScreenFile type");
-            }
-            else if (file is LightFile)
-            {
-                if (file is BlackoutLightFile bsf)
-                {
-                    Type = ExpectedFileType.Blackout;
-                    reason = bsf.Reason;
-                }
-                else
-                    Type = ExpectedFileType.Lights;
-            }
-            else
-                throw new Exception("Invalid CueFile type");
-
-            OnPathChanged(Path);//I am only doing this because I cannot decide if I want to let the initial type be influenced by the incoming type or not
-        }
-        partial void OnPathChanged(string value)
-        {
-            string ext = System.IO.Path.GetExtension(value).ToLower();
-
-            // Define file type groups
-            var videoExtensions = new[] { ".mp4", ".avi", ".mov", ".mkv", ".flv", ".wmv" };
-            var imageExtensions = new[] { ".png", ".jpg", ".jpeg", ".bmp", ".tiff" };
-            var audioExtensions = new[] { ".mp3", ".wav", ".ogg", ".flac", ".aac" };
-
-            if (string.IsNullOrEmpty(value))
-            {
-                Reason = BlackoutReason.EmptyPath;
-                Type = ExpectedFileType.Blackout;
-            }
-            else if (!System.IO.File.Exists(value))
-            {
-                Reason = BlackoutReason.InvalidPath;
-                Type = ExpectedFileType.Blackout;
-            }
-            else if (ext == ".scex" && _index == 0)
-            {
-                Type = ExpectedFileType.Lights;
-            }
-            else if (ext == ".scex" && _index != 0)
-            {
-                Reason = BlackoutReason.InvalidFileType;
-                Type = ExpectedFileType.Blackout;
-            }
-            else if (videoExtensions.Contains(ext))
-            {
-                Type = ExpectedFileType.Video;
-            }
-            else if (ext == ".gif")  //GIF can also be treated as an image, it's up to you
-            {
-                Type = ExpectedFileType.Gif;
-            }
-            else if (imageExtensions.Contains(ext))
-            {
-                Type = ExpectedFileType.Image;
-            }
-            else if (audioExtensions.Contains(ext))
-            {
-                Type = ExpectedFileType.Audio;
-            }
-            else
-            {
-                Reason = BlackoutReason.InvalidFileType;
-                Type = ExpectedFileType.Blackout;
-            }
-        }
-
-        public async void OpenFileDialogAsync(Window? window)
-        {
-
-            string startupFolder = System.IO.Path.GetDirectoryName(Path) ?? (_index == 0 ? GlobalSettings.Instance.LightShowDirectory : GlobalSettings.Instance.VideoDirectory);
-            if (window is null)
-                throw new Exception("Window is null");
-            var st = await window.StorageProvider.TryGetFolderFromPathAsync(startupFolder);
-            var files = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            {
-                Title = "Open Source File",
-                AllowMultiple = false,
-                SuggestedStartLocation = st,
-            });
-
-            if (files.Count >= 1)
-            {
-                Path = Uri.UnescapeDataString(files[0].Path.AbsolutePath);
-            }
-        }
-
-
-    }
     public partial class CueEditorViewModel : ObservableObject
     {
-        public static List<string> FadeTypeStrings { get; } = new() {
-            "ShowXPress",
-            "Fade Over"
-        };
         public static List<string> EndActionStrings { get; } = new() {
             "Loop" ,
             "Fade After End" ,
@@ -194,64 +18,86 @@ namespace DeLight.ViewModels
             "Freeze"
         };
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(Visible))]
         private Cue cue;
-        private bool isNew;
-        public bool IsSaved { get; private set; } = true;
 
-        public int NumProjectors => GlobalSettings.Instance.NumProjectors;
+        public bool Visible => Cue != null;
 
-
+        //only values that need validation are created here, all others directly bind to the cue.
         [ObservableProperty]
-        private string number;
-        [ObservableProperty]
-        private string note;
-        [ObservableProperty]
-        private double fadeInTime;
-        [ObservableProperty]
-        private double fadeOutTime;
+        private int number;
         [ObservableProperty]
         private double duration;
         [ObservableProperty]
-        private double volume;
+        private int volume;
         [ObservableProperty]
-        private FadeType fadeType;
+        private LightFileViewModel lightFile;
         [ObservableProperty]
-        private EndAction cueEndAction;
+        private ScreenFileViewModel screenFile;
+
         [ObservableProperty]
-        private List<CueFileViewModel?> files = new();
-        [ObservableProperty]
-        private bool isDefault;
-        public CueEditorViewModel(Cue cue, bool isDefault = false)
+        private ObservableCollection<CueFileViewModel> cues = new();
+        public CueEditorViewModel(Cue cue)
         {
             this.cue = cue;
-            isNew = cue.Number == "0";
-            IsDefault = isDefault;
             number = cue.Number;
-            note = cue.Note;
-            fadeInTime = cue.FadeInTime;
-            fadeOutTime = cue.FadeOutTime;
             duration = cue.Duration;
-            volume = cue.Volume;
-            fadeType = cue.FadeType;
-            cueEndAction = cue.CueEndAction;
-            files.Add(new(cue.LightScene, 0));
-            foreach (var file in cue.ScreenFiles)
-            {
-                while (files.Count <= file.Key)
-                    files.Add(null);
-                files[file.Key] = new(file.Value, file.Key);
-            }
+            volume = (int)Math.Round(cue.Volume) * 100;
+            lightFile = new(cue.LightFile);
+            screenFile = new(cue.ScreenFile);
+            lightFile.FileTypeChanged += (s, e) => OnFileTypeChanged(((LightFileViewModel)s!).File);
+            screenFile.FileTypeChanged += (s, e) => OnFileTypeChanged(((ScreenFileViewModel)s!).File);
+            cues.Add(lightFile);
+            cues.Add(screenFile);
+            OnPropertyChanged(nameof(Visible));
         }
 
-        public void Save()
+        private void OnFileTypeChanged(CueFile f)
         {
-            IsSaved = true;
+            if (f is LightFile lf)
+                Cue.LightFile = lf;
+            else
+                Cue.ScreenFile = (ScreenFile)f;
         }
+        public bool Validate(string propName, object value)
+        {
+            switch (propName)
+            {
+                case nameof(Number):
+                    if ((int)value < 0)
+                        return false;
+                    Number = (int)value;
+                    break;
+                case nameof(Duration):
+                    if ((double)value < 0)
+                        return false;
+                    Duration = (double)value;
+                    break;
+                case nameof(Volume):
+                    Volume = (int)value;
+                    break;
+            }
+            return true;
+        }
+
 
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
-            IsSaved = false;
+            switch (e.PropertyName)
+            {
+                case nameof(Number):
+                    Cue.Number = Number;
+                    break;
+                case nameof(Duration):
+                    Cue.Duration = Duration;
+                    break;
+                case nameof(Volume):
+                    Cue.Volume = Math.Clamp(Volume / 100.0, 0, 1);
+                    break;
+            }
         }
     }
 }
+

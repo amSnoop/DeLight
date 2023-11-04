@@ -1,0 +1,11 @@
+﻿✓  Selection Change handler needs to be added onto the CueEditorViewModel - disallow if cancel pressed
+✓ Add state checks to the CueListCueViewModel to change the colors of the cue list
+✓  Add a base CueViewModel to inherit from
+Change the CueEditorViewModel to refelct the changes to the CueFile handling
+Implement Cue Editor Saving
+Implement Show mode
+Implement Global Controls (fade to black, show/hide video window, etc)
+Add a context Menu for the cue list
+Add a Add Cue button
+Add tooltips
+Add a Shortcuts view

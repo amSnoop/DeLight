@@ -1,8 +1,9 @@
-﻿using Avalonia.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using DeLight.Models.Files;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace DeLight.Models
 {
@@ -33,98 +34,57 @@ namespace DeLight.Models
     public partial class Cue : ObservableObject
     {
         [ObservableProperty]
-        private string number = "";
+        private int number;
         [ObservableProperty]
-        private string note = "";
+        private string letter;
+        [ObservableProperty]
+        private string note;
 
         [ObservableProperty]
-        private bool isActive = false;//Used for changing the color in the CueList because I didn't want to make a whole new view model for it
+        private bool isActive;//Used for changing the color in the CueList because I didn't want to make a whole new view model for it
 
         [ObservableProperty]
         private double fadeInTime;
         [ObservableProperty]
         private double fadeOutTime;
-        [ObservableProperty]
-        private double volume;//0 to 1 TODO: Implement this
+        [ObservableProperty]//TODO: Implement Volume
+        private double volume;//0 to 1 
         [ObservableProperty]
         private double duration;
         [ObservableProperty]
-        private FadeType fadeType;//TODO: Implement this
+        private FadeType fadeType;//TODO: Implement FadeType
         [ObservableProperty]
         private EndAction cueEndAction;
         [ObservableProperty]
-        private Dictionary<int, ScreenFile> screenFiles;
+        private ScreenFile screenFile;
         [ObservableProperty]
-        private LightFile lightScene;
+        private LightFile lightFile;
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(BGColor))]
-        private bool ready;
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(BGColor))]
-        private bool disabled;//TODO: Implement this
+        private bool disabled;
 
-
-        public SolidColorBrush BGColor => new(!Ready ? Color.Parse("#56211d") : Colors.Transparent);//TODO: Make a ViewModel for this
 
         public Cue()
         {
-            Number = "0";
-            FadeInTime = 3;
-            FadeOutTime = 3;
-            Volume = .2;
-            Note = "New Cue";
-            Duration = 0;
-            CueEndAction = EndAction.FadeAfterEnd;
-            FadeType = FadeType.FadeOver;
-            ScreenFiles = new()
-            {
-                { 1, new BlackoutScreenFile(BlackoutReason.EmptyPath) }
-            };
-            LightScene = new BlackoutLightFile(BlackoutReason.EmptyPath);
+            number = 0;
+            letter = "";
+            fadeInTime = 3;
+            fadeOutTime = 3;
+            volume = .2;
+            note = "New Cue";
+            duration = 0;
+            cueEndAction = EndAction.FadeAfterEnd;
+            fadeType = FadeType.FadeOver;
+            screenFile = new BlackoutScreenFile();
+            lightFile = new BlackoutLightFile();
         }
 
-        public bool SetScreenFile(int screenNumber, ScreenFile file)
+        public int CompareNum(Cue? c2)
         {
-            if(screenNumber > 0)
-            {
-                ScreenFiles[screenNumber] = file;
-                return true;
-            }
-            return false;
+            if (c2 == null || Number > c2.Number || (Number == c2.Number && string.Compare(Letter, c2.Letter) > 0))
+                return 1;
+            if (Number == c2.Number && Letter == c2.Letter)
+                return 0;
+            return -1;
         }
-
-        public bool ChangeFileScreen(int screenNumber, ScreenFile file)
-        {
-            int curScreen = ScreenFiles.FirstOrDefault(x => x.Value == file).Key;
-            if (curScreen != 0 && screenNumber > 0)
-            {
-                ScreenFiles[curScreen] = new BlackoutScreenFile(BlackoutReason.EmptyPath);
-                ScreenFiles[screenNumber] = file;
-                return true;
-            }
-            return false;
-        }
-
-        public bool SwapFileScreen(int screenNumber, ScreenFile file)
-        {
-            int curScreen = ScreenFiles.FirstOrDefault(x => x.Value == file).Key;
-            if (curScreen != 0 && screenNumber > 0)
-            {
-                ScreenFile temp = ScreenFiles[screenNumber];
-                ScreenFiles[screenNumber] = file;
-                ScreenFiles[curScreen] = temp;
-                return true;
-            }
-            return false;
-        }
-        public void RemoveScreen(int screenNumber)
-        {
-            if (screenNumber > 0)
-            {
-                ScreenFiles.Remove(screenNumber);
-            }
-        }
-
-        //TODO: Make a class that handles editing a cue using a temp cue and temp media file types
     }
 }

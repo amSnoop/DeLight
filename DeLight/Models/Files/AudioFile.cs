@@ -1,13 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using DeLight.Interfaces;
 
 namespace DeLight.Models.Files
 {
-    //TODO: Implement
-    public partial class AudioFile : CueFile
+    //TODO: Implement AudioFile
+    public partial class AudioFile : CueFile, IAudioFile
     {
         [ObservableProperty]
         private double volume;
-        public bool HasValidFile;
+
 
         public AudioFile()
         {

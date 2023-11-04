@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media.Animation;
-using System.Collections.Generic;
-using DeLight.Models;
-using System.IO;
 using System.Windows.Forms;
 
 namespace DeLight.Views

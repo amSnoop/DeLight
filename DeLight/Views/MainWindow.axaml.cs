@@ -2,8 +2,11 @@ using Avalonia.Controls;
 using DeLight.ViewModels;
 using System;
 using DeLight.Utilities;
-using Avalonia.Input;
 using System.Windows.Input;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using static DeLight.ViewModels.CueListContextMenuButtonClickedEventArgs;
+using System.Linq;
 
 namespace DeLight.Views
 {
@@ -11,55 +14,89 @@ namespace DeLight.Views
     {
         private int count;
 
-        private bool isDragging;
-
-        //private IDeviceNotifier usbDeviceNotifier;
-
-        private readonly int vendor_id = 0x1069;
-        private readonly int product_id = 0x1040;
-
         public MainWindow()
         {
             WindowState = WindowState.Normal;
             Position = new(GlobalSettings.Instance.LastScreenLeft, GlobalSettings.Instance.LastScreenTop);
-            DataContext = new MainWindowViewModel(this);
             InitializeComponent();
-            ((MainWindowViewModel)DataContext).MainWindowLoaded();
-
-            //usbDeviceNotifier = DeviceNotifier.OpenDeviceNotifier();
-            //usbDeviceNotifier.OnDeviceNotify += OnDeviceNotifyEvent;
+            SettingsDisplay.DataContext = GlobalSettings.Instance;
+            CueList.SelectionChanged += CueList_SelectionChanged;
+            AddCueButton.Click += CueListAddButtonClicked;
             KeyDown += OnKeyDown;
             SizeChanged += MainWindow_OnSizeChanged;
-            //MouseDown += MainWindow_MouseDown;
+            PointerPressed += MainWindow_MouseDown;
             Loaded += MainWindow_Loaded;
+            CueList.Focusable = false;
+            if (Design.IsDesignMode)
+            {
+                DataContext = new MainWindowViewModel(new ShowRunner(Models.Show.LoadTestShow()));
+            }
+        }
+
+        private void Info_EditButtonClicked(object? sender, EditButtonClickedEventArgs e)
+        {
+            if (e.Cue != null)
+            {
+                var cueEditorViewModel = new CueEditorViewModel(e.Cue);
+                CueEditorWindow.DataContext = cueEditorViewModel;
+
+            }
+        }
+
+        public void CueListAddButtonClicked(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel vm)
+            {
+                var cueEditorViewModel = new CueEditorViewModel(new() { Number = vm.Cues.Last().Cue?.Number + 1 ?? 0 });
+                CueEditorWindow.DataContext = cueEditorViewModel;
+                vm.InsertCue(cueEditorViewModel.Cue);
+            }
+        }
+
+        public void CueListContextMenuClicked(object? sender, CueListContextMenuButtonClickedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel && sender is not null && sender is CueListCueViewModel clcvm)
+            {
+                if (e.Action == CueListContextMenuButton.Edit)
+                {
+                    Info_EditButtonClicked(this, new(clcvm.Cue));
+                }
+                else if (e.Action == CueListContextMenuButton.Delete)
+                {
+                    var result = System.Windows.MessageBox.Show("Are you sure you want to delete this cue?", "Delete Cue", System.Windows.MessageBoxButton.YesNo);
+                    if (result == System.Windows.MessageBoxResult.Yes)
+                        (DataContext as MainWindowViewModel)?.DeleteCue(clcvm.Cue);
+                }
+            }
+        }
+        public void CueList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            var cueEditorViewModel = new CueEditorViewModel((CueList.SelectedItem as CueListCueViewModel)?.Cue ?? new());
+            CueEditorWindow.DataContext = cueEditorViewModel;
+            Focus();
         }
 
         public void MainWindow_Loaded(object? sender, EventArgs e)
         {
             WindowState = GlobalSettings.Instance.WindowState;
+            PlaybackBar.DataContext = (DataContext as MainWindowViewModel)?.CuePlaybackViewModel;
+            if (DataContext is MainWindowViewModel)
+                foreach (var cue in (DataContext as MainWindowViewModel)!.Cues)
+                {
+                    cue.ButtonClicked += CueListContextMenuClicked;
+                }
         }
-        public void MainWindow_MouseDown(object sender, MouseButtonEventArgs e)
+        public void MainWindow_MouseDown(object? sender, PointerPressedEventArgs e)
         {
-            Keyboard.ClearFocus();
+            GetTopLevel(this)?.FocusManager?.ClearFocus();
             Activate();
             Focus();
         }
-
-        //private void OnDeviceNotifyEvent(object? sender, DeviceNotifyEventArgs e)
+        //unused atm
+        //private bool IsPointOutsideControl(Point point, Control control)
         //{
-        //    if (e.Device.IdVendor == vendor_id && e.Device.IdProduct == product_id)
-        //    {
-        //        if (e.EventType == EventType.DeviceArrival)
-        //        {
-        //            Console.WriteLine("Device connected.");
-        //            // handle connection event
-        //        }
-        //        else if (e.EventType == EventType.DeviceRemoveComplete)
-        //        {
-        //            Console.WriteLine("Device disconnected.");
-        //            // handle disconnection event
-        //        }
-        //    }
+        //    var controlBounds = new Rect(0, 0, control.Bounds.Width, control.Bounds.Height);
+        //    return !controlBounds.Contains(point);
         //}
 
         protected override void OnClosed(EventArgs e)
@@ -69,26 +106,26 @@ namespace DeLight.Views
             GlobalSettings.Instance.WindowState = WindowState;
             GlobalSettings.Save();
             base.OnClosed(e);
-            (DataContext as MainWindowViewModel)?.HideVideoPlayback();
+            (DataContext as MainWindowViewModel)?.HideVideoWindow();
 
         }
         protected void OnKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
 
         {
             base.OnKeyDown(e);
-            if (e.Key == Avalonia.Input.Key.Escape && ((DataContext as MainWindowViewModel)?.VideoIsVisible ?? false) && Keyboard.FocusedElement is not TextBox)
+            if (e.Key == Avalonia.Input.Key.Escape && Keyboard.FocusedElement is not TextBox)
             {
                 count++;
                 if (count == 2)
                 {
-                    (DataContext as MainWindowViewModel)?.HideVideoPlayback();
+                    (DataContext as MainWindowViewModel)?.HideVideoWindow();
                     count = 0;
                 }
                 e.Handled = true;
             }
             else if (e.Key == Avalonia.Input.Key.Space && DataContext is MainWindowViewModel vm && Keyboard.FocusedElement is not TextBox)
             {
-                vm.PlayNextCue();
+                vm.PlayCue();
                 e.Handled = true;
             }
             else
@@ -110,7 +147,7 @@ namespace DeLight.Views
         {
             if (DataContext is MainWindowViewModel vm)
             {
-                vm.UpdateWindowSize();
+                vm.UpdateWindowSize(Bounds.Height);
             }
         }
     }

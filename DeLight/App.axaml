@@ -13,16 +13,18 @@
 		<SolidColorBrush x:Key="TextDisabled" Color="#444" />
 		<SolidColorBrush x:Key="ForegroundBrush" Color="White" />
 		<SolidColorBrush x:Key="TextBaseBrush" Color="White" />
-		<SolidColorBrush x:Key="TextAltBrush" Color="Wheat" />
+		<SolidColorBrush x:Key="TextAltBrush" Color="#D345A4" />
 		<SolidColorBrush x:Key="AccentBrush" Color="#45a4d3" />
 		<SolidColorBrush x:Key="AccentBrushDark" Color="#468" />
 		<SolidColorBrush x:Key="AccentBrushMed" Color="#579" />
 		<SolidColorBrush x:Key="AccentBrushLight" Color="#7cf" />
+		<SolidColorBrush x:Key="ErrorBG" Color="#56211d" />
+		<SolidColorBrush x:Key="ErrorFG" Color="#F33" />
 	</Application.Resources>
 	<Application.Styles>
 		<FluentTheme />
 		<Style Selector="TextBox:pointerover">
-			<Setter Property="Background" Value="{StaticResource InteractiveControlMouseOver}" />
+			<Setter Property="Background" Value="#fff" />
 			<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
 		</Style>
 		<Style Selector="TextBox:focus">
@@ -37,6 +39,16 @@
 		<Style Selector="TextBox:focus Border">
 			<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
 		</Style>
+		<Style Selector="TextBox.Error">
+			<Setter Property="Foreground" Value="{StaticResource ErrorFG}" />
+			<Setter Property="Background" Value="{StaticResource ErrorBG}" />
+		</Style>
+		<Style Selector="TextBox.Error:pointerover /template/ Border#PART_BorderElement">
+			<Setter Property="Background" Value="{StaticResource ErrorBG}" />
+		</Style>
+		<Style Selector="TextBox.Error:focus /template/ Border#PART_BorderElement">
+			<Setter Property="Background" Value="{StaticResource ErrorBG}" />
+		</Style>
 		<Style Selector="TextBox">
 			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>
 			<Setter Property="FontSize" Value="{Binding $parent[Window].DataContext.BodyFontSize}" />
@@ -44,6 +56,10 @@
 			<Setter Property="BorderBrush" Value="{StaticResource InteractiveControlBorder}" />
 			<Setter Property="Foreground" Value="{StaticResource InteractiveControlForeground}" />
 			<Setter Property="VerticalContentAlignment" Value="Center" />
+			<Setter Property="CornerRadius" Value="0" />
+			<Setter Property="Padding" Value="6,4" />
+			<Setter Property="MinWidth" Value="0" />
+			<Setter Property="MinHeight" Value="0" />
 		</Style>
 		<Style Selector="TextBlock">
 			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>
@@ -67,11 +83,26 @@
 			<Setter Property="Foreground" Value="{StaticResource TextBaseBrush}" />
 			<Setter Property="HorizontalAlignment" Value="Center" />
 		</Style>
+		<Style Selector="TextBlock.CueListContent">
+			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>
+			<Setter Property="FontSize" Value="{Binding $parent[Window].DataContext.CueFontSize}" />
+			<Setter Property="Foreground" Value="{StaticResource TextBaseBrush}" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+		</Style>
 		<Style Selector="TextBlock.Title">
 			<Setter Property="FontFamily" Value="MS Reference Sans Serif"/>
 			<Setter Property="FontSize" Value="{Binding $parent[Window].DataContext.TitleFontSize}" />
 			<Setter Property="Foreground" Value="{StaticResource TextBaseBrush}" />
 			<Setter Property="HorizontalAlignment" Value="Center" />
+		</Style>
+
+		<Style Selector="ComboBox">
+			<Setter Property="MinWidth" Value="0" />
+			<Setter Property="MinHeight" Value="0" />
+			<Setter Property="CornerRadius" Value="0"/>
+		</Style>
+		<Style Selector="ComboBox:disabled TextBlock">
+			<Setter Property="Foreground" Value="{StaticResource TextDisabled}" />
 		</Style>
 	</Application.Styles>
 

@@ -1,9 +1,10 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using DeLight.Models;
 using DeLight.Utilities;
+using DeLight.Utilities.LightingOutput;
 using DeLight.ViewModels;
 using DeLight.Views;
 
@@ -24,7 +25,12 @@ namespace DeLight
                 // Without this line you will get duplicate validations from both Avalonia and CT
                 BindingPlugins.DataValidators.RemoveAt(0);
                 GlobalSettings.Load();
-                desktop.MainWindow = new MainWindow();
+                ShowRunner show = new(Show.Load(GlobalSettings.Instance.LastShowPath));
+                LightingController.Start();
+                desktop.MainWindow = new MainWindow() 
+                {
+                    DataContext = new MainWindowViewModel(show)
+                };
             }
 
             base.OnFrameworkInitializationCompleted();

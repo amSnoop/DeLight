@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DeLight.Interfaces;
 
 namespace DeLight.Models.Files
 {
     //used if the filepath is not valid
-    public partial class BlackoutScreenFile : ScreenFile
+    public partial class BlackoutScreenFile : ScreenFile, IBlackoutFile
     {
-        public BlackoutReason Reason { get; set; }
-        public BlackoutScreenFile(BlackoutReason reason)
+        public BlackoutScreenFile()
         {
-            Reason = reason;
         }
     }
 }
