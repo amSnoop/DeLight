@@ -55,7 +55,10 @@ namespace DeLight.Utilities
             else if (sf is BlackoutScreenFile bof)
                 cme = new BlackoutVisualCue(bof); //extends Border
             else if (sf is VideoFile vf)
+            {
+                vf.Volume = cue.Volume;//only one screen file per cue means just make it the cue volume to manage it easier.
                 cme = new VideoMediaElement(vf);
+            }
             else if (sf is ImageFile imgf)
                 cme = new ImageMediaElement(imgf); //extends CustomMediaElement
             else
@@ -64,7 +67,17 @@ namespace DeLight.Utilities
             VisualCues.Add(cme);
             cme.FadedIn += VisualCueFadedIn;
             FadedOut += OnFadedOut;
-            Console.WriteLine(cue.CueEndAction);
+            Messenger.VolumeChanged += (source, volume, cue) =>
+            {
+                if (cue != null && cue == Cue)
+                {
+                    if (cme is VideoMediaElement vme)
+                        vme.SetVolume(source, volume);
+                }
+                else if (source == VolumeSource.Master && cme is VideoMediaElement vm)
+                    vm.SetVolume(source, volume);
+            };
+
         }
 
 

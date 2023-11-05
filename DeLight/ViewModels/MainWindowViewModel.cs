@@ -108,15 +108,21 @@ namespace DeLight.ViewModels
         {
             _screenObjects = Screen.AllScreens.ToList();
             Monitors = new(_screenObjects.Select((s, i) => $"Monitor {i + 1}: {s.Bounds.Width}x{s.Bounds.Height}"));
-            if (Screen.PrimaryScreen == null)
-            {
-                SelectedMonitor = Monitors.FirstOrDefault() ?? "";
-                showRunner.SetVideoScreen(_screenObjects.First());
-            }
+            if (GlobalSettings.Instance.Screen == null)
+                if (Screen.PrimaryScreen == null)
+                {
+                    SelectedMonitor = Monitors.FirstOrDefault() ?? "";
+                    showRunner.SetVideoScreen(_screenObjects.First());
+                }
+                else
+                {
+                    SelectedMonitor = Monitors[_screenObjects.IndexOf(Screen.PrimaryScreen)];
+                    showRunner.SetVideoScreen(Screen.PrimaryScreen);
+                }
             else
             {
-                SelectedMonitor = Monitors[_screenObjects.IndexOf(Screen.PrimaryScreen)];
-                showRunner.SetVideoScreen(Screen.PrimaryScreen);
+                SelectedMonitor = Monitors[_screenObjects.IndexOf(GlobalSettings.Instance.Screen)];
+                showRunner.SetVideoScreen(GlobalSettings.Instance.Screen);
             }
             SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanged;
         }
@@ -142,6 +148,7 @@ namespace DeLight.ViewModels
             var screen = _screenObjects[Monitors.IndexOf(SelectedMonitor)];
             showRunner.SetVideoScreen(screen);
             selectedScreen = screen;
+            GlobalSettings.Instance.Screen = screen;
         }
 
         #endregion

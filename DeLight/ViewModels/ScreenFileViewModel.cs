@@ -12,9 +12,9 @@ namespace DeLight.ViewModels
         private static readonly Dictionary<string[], Type> extensions = new()
         {
             { new[] { ".mp4", ".avi", ".mov", ".mkv", ".flv", ".wmv" }, typeof(VideoFile) },
-            { new[] { ".gif" }, typeof(GifFile)},
-            { new[] { ".png", ".jpg", ".jpeg", ".bmp", ".tiff" }, typeof(ImageFile)},
-            { new[] { ".mp3", ".wav", ".ogg", ".flac", ".aac" }, typeof(AudioFile)},
+            { new[] { ".gif" }, typeof(GifFile) },
+            { new[] { ".png", ".jpg", ".jpeg", ".bmp", ".tiff" }, typeof(ImageFile) },
+            { new[] { ".mp3", ".wav", ".ogg", ".flac", ".aac" }, typeof(AudioFile) },
         };
 
 
@@ -29,7 +29,7 @@ namespace DeLight.ViewModels
         public ScreenFileViewModel(ScreenFile sf) : base(sf)
         {
             file = sf;
-            file.PropertyChanged += (s, e) => { if (s is ScreenFile f) OnPathChanged(f.FilePath); };
+            file.PropertyChanged += (s, e) => { if (s is ScreenFile f && e.PropertyName == nameof(ScreenFile.FilePath)) OnPathChanged(f.FilePath); };
         }
         public string HeaderStart => "Screen: ";
         public string HeaderEnd => File is BlackoutScreenFile ? "Blackout" : ReasonString;

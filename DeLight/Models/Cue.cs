@@ -1,15 +1,16 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using DeLight.Models.Files;
+using DeLight.Utilities;
 using System.Runtime.CompilerServices;
 
 namespace DeLight.Models
 {
     public enum EndAction
     {
-        Loop,
-        FadeAfterEnd,
-        FadeBeforeEnd,
-        Freeze,
+        Loop = 0,
+        FadeAfterEnd = 1,
+        FadeBeforeEnd = 2,
+        Freeze = 3,
     }
 
 
@@ -61,7 +62,10 @@ namespace DeLight.Models
                 FilePath = s
             };
         }
-
+        partial void OnVolumeChanged(double value)
+        {
+            Messenger.SendVolumeChanged(VolumeSource.Cue, value, this);
+        }
         public int CompareNum(Cue? c2)
         {
             if (c2 == null || Number > c2.Number || (Number == c2.Number && string.Compare(Letter, c2.Letter) > 0))

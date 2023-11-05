@@ -1,12 +1,15 @@
 ﻿using DeLight.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DeLight.Utilities
 {
+
+    public enum VolumeSource
+    {
+        Master,
+        Cue,
+        File
+    }
     public static class Messenger
     {
 
@@ -14,6 +17,8 @@ namespace DeLight.Utilities
         public static event EventHandler<CueTickEventArgs>? CueTick;
 
         public static event Action<double, bool>? SeekTo;
+
+        public static event Action<VolumeSource, double, Cue?>? VolumeChanged;
         public static void SendCueTick(object sender, CueTickEventArgs e)
         {
             if (sender == ActiveCue)
@@ -23,6 +28,12 @@ namespace DeLight.Utilities
         public static void SendSeekTo(double time, bool play)
         {
             SeekTo?.Invoke(time, play);
+        }
+
+        public static void SendVolumeChanged(VolumeSource source, double volume, Cue? sender = null)
+        {
+            volume = Math.Clamp(volume, 0, 1);
+            VolumeChanged?.Invoke(source, volume, sender);
         }
     }
 

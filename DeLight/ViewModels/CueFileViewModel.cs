@@ -15,7 +15,7 @@ namespace DeLight.ViewModels
         protected CueFile file;
         public string FileName => File.FilePath != null ? $" ({System.IO.Path.GetFileNameWithoutExtension(File.FilePath)})" : "";
         public bool DurationVisibility => File is IDurationFile;
-        public bool VolumeVisibility => File is IAudioFile;
+        public bool VolumeVisibility => /*File is IAudioFile */ false;//Unused since only one video file per cue means Cue volume is easier to manage.
 
         public event EventHandler? FileTypeChanged;
 
@@ -59,7 +59,5 @@ namespace DeLight.ViewModels
                 File.FilePath = Uri.UnescapeDataString(files[0].Path.AbsolutePath);
             }
         }
-
-
     }
 }

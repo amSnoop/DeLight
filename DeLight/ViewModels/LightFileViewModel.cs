@@ -8,7 +8,7 @@ namespace DeLight.ViewModels
         public LightFileViewModel(LightFile lf) : base(lf)
         {
             file = lf;
-            file.PropertyChanged += (s, e) => { if (s is LightFile f) OnPathChanged(f.FilePath); };
+            file.PropertyChanged += (s, e) => { if (s is LightFile f && e.PropertyName == nameof(LightFile.FilePath)) OnPathChanged(f.FilePath); };
         }
         public string HeaderStart => "Lights: ";
         public string HeaderEnd => File is BlackoutLightFile ? "Blackout" : ReasonString;
@@ -55,7 +55,7 @@ namespace DeLight.ViewModels
         {
             if (!Path.Exists(path))
                 return FileErrorState.InvalidPath;
-            if (!Path.HasExtension(path) || path.ToLower() != ".scex")
+            if (!Path.HasExtension(path) || Path.GetExtension(path).ToLower() != ".scex")
                 return FileErrorState.InvalidFileType;
             return FileErrorState.None;
         }

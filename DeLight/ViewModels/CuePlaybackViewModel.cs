@@ -65,18 +65,11 @@ namespace DeLight.ViewModels
         public string FormattedDuration => " / " + TimeSpan.FromSeconds(RealDuration).ToString(@"hh\:mm\:ss");
         public double Volume
         {
-            get => Cue?.Volume ?? GlobalSettings.Instance.DefaultCue.Volume;
+            get => GlobalSettings.Instance.MasterVolume;
             set
             {
-                if (value < 0)
-                    value = 0;
-                if (value > 1)
-                    value = 1;
-                if (Cue != null)
-                {
-                    Cue.Volume = value;
-                    OnPropertyChanged(nameof(Volume));
-                }
+                value = Math.Clamp(value, 0, 1);
+                Messenger.SendVolumeChanged(VolumeSource.Master, value);
             }
         }
 

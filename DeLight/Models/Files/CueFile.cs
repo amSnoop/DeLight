@@ -51,7 +51,10 @@ namespace DeLight.Models.Files
             FadeOutDuration = 3;
             ErrorState = FileErrorState.None;
         }
-
+        partial void OnEndActionChanged(EndAction value)
+        {
+            
+        }
     }
 
 }

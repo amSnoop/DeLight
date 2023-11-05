@@ -101,15 +101,15 @@ namespace DeLight.Views
         //    return !controlBounds.Contains(point);
         //}
 
-        protected override void OnClosed(EventArgs e)
+        protected override void OnClosing(WindowClosingEventArgs e)
         {
+            GlobalSettings.Instance.WindowState = WindowState;
+            WindowState = WindowState.Normal;
             GlobalSettings.Instance.LastScreenTop = Position.Y;
             GlobalSettings.Instance.LastScreenLeft = Position.X;
-            GlobalSettings.Instance.WindowState = WindowState;
             GlobalSettings.Save();
-            base.OnClosed(e);
+            base.OnClosing(e);
             (DataContext as MainWindowViewModel)?.HideVideoWindow();
-
         }
         protected void OnKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
 

@@ -15,8 +15,10 @@ namespace DeLight.Utilities
      */
     public class VideoMediaElement : BaseMediaElement
     {
+        private readonly VideoFile file;
         public VideoMediaElement(VideoFile file) : base(file)
         {
+            this.file = file;
             Volume = file.Volume;
             if (file.EndAction == EndAction.Loop)
                 MediaEnded += (s, e) => Restart();
@@ -69,6 +71,13 @@ namespace DeLight.Utilities
                     FetchOpacity(time);
                     FadeOut(time);
                 }
+        }
+
+        public void SetVolume(VolumeSource src, double vol)
+        {
+            if(src == VolumeSource.Cue)
+                file.Volume = vol;
+            Volume = file.Volume * GlobalSettings.Instance.MasterVolume;
         }
     }
 }

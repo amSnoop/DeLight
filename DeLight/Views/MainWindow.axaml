@@ -155,7 +155,7 @@
 							</DataTemplate>
 						</ListBox.ItemTemplate>
 					</ListBox>
-					<Button x:Name="AddCueButton" HorizontalAlignment="Center" CornerRadius="5" Margin="5" Padding="10,3">
+					<Button Focusable="False" x:Name="AddCueButton" HorizontalAlignment="Center" CornerRadius="5" Margin="5" Padding="10,3">
 						<TextBlock Classes="CueListContent" Foreground="#D345A4">+ Add Cue</TextBlock>
 					</Button>
 				</StackPanel>
@@ -182,11 +182,11 @@
 					<RowDefinition Height="Auto" />
 				</Grid.RowDefinitions>
 				<!--Play/Pause/Stop/Seek Slider/Time Passed/TotalTime-->
-				<Slider x:Name="PlayBackSlider" Grid.Column="0" Margin="5,5,5,5" Grid.ColumnSpan="19" Minimum="0" Maximum="{Binding RealDuration}" Value="{Binding CurrentTime}" />
-				<Button Grid.Column="0" Content="Play" Margin="5,5,5,5" Grid.Row="1" Click="Play_Button_Clicked"/>
-				<Button Grid.Column="1" Content="Pause" Margin="5,5,5,5" Grid.Row="1" Click="Pause_Button_Clicked"/>
-				<Button Grid.Column="2" Content="Stop" Margin="5,5,5,5" Grid.Row="1" Click="Stop_Button_Clicked"/>
-				<Slider Grid.Column="3" Grid.Row ="1"  Minimum="0" Maximum="1" VerticalAlignment="Center" Value="{Binding Volume}" />
+				<Slider Focusable="False" x:Name="PlayBackSlider" Grid.Column="0" Margin="5,5,5,5" Grid.ColumnSpan="19" Minimum="0" Maximum="{Binding RealDuration}" Value="{Binding CurrentTime}" />
+				<Button Focusable="False" Grid.Column="0" Content="Play" Margin="5,5,5,5" Grid.Row="1" Click="Play_Button_Clicked"/>
+				<Button Focusable="False" Grid.Column="1" Content="Pause" Margin="5,5,5,5" Grid.Row="1" Click="Pause_Button_Clicked"/>
+				<Button Focusable="False" Grid.Column="2" Content="Stop" Margin="5,5,5,5" Grid.Row="1" Click="Stop_Button_Clicked"/>
+				<Slider Focusable="False" Grid.Column="3" Grid.Row ="1"  Minimum="0" Maximum="1" VerticalAlignment="Center" Value="{Binding Volume}" />
 				<TextBlock Grid.Column="5" Grid.Row="1" Text="{Binding FormattedNumber}" Foreground="{StaticResource TextAltBrush}" Classes="Title"  />
 				<TextBlock Grid.Column="6" Grid.Row="1" Text="{Binding Note}" Classes="Title"  />
 				<TextBlock Grid.Column="8" Text="{Binding FormattedCurrentTime}" Foreground="{StaticResource TextAltBrush}" Grid.Row="1"  Classes="Title"  />
@@ -222,12 +222,11 @@
 
 
 				<TextBlock Grid.Row="1" Text="Output Screen:" VerticalAlignment="Center"/>
-				<ComboBox x:Name="MonitorSelector" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" DataContext="{Binding Path=DataContext, 
-    RelativeSource={RelativeSource AncestorType=Window}}" VerticalAlignment="Center" ItemsSource="{Binding Monitors}" SelectedIndex="0" SelectedItem="{Binding SelectedMonitor}" />
+				<ComboBox Focusable="False" x:Name="MonitorSelector" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Window}}" VerticalAlignment="Center" ItemsSource="{Binding Monitors}" SelectedIndex="0" SelectedItem="{Binding SelectedMonitor}" />
 
 
 				<TextBlock Grid.Row="2" Text="Audio Device:" VerticalAlignment="Center" IsEnabled="False"/>
-				<ComboBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" IsEnabled="False" />
+				<ComboBox Focusable="False" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" IsEnabled="False" />
 
 
 				<TextBlock Grid.Row="3" Text="Show Path:" VerticalAlignment="Center"/>
@@ -237,7 +236,7 @@
 						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
 					<TextBox Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding LastShowPath}" />
-					<Button Grid.Column="1" Content=" . . . " VerticalAlignment="Stretch" FontSize="{Binding BodyFontSize}" />
+					<Button Focusable="False" Grid.Column="1" Content=" . . . " VerticalAlignment="Stretch" FontSize="{Binding BodyFontSize}" />
 				</Grid>
 
 
@@ -248,7 +247,7 @@
 						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
 					<TextBox Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding VideoDirectory}" />
-					<Button Grid.Column="1" Content=" . . . " VerticalAlignment="Center" FontSize="{Binding BodyFontSize}" />
+					<Button Focusable="False" Grid.Column="1" Content=" . . . " VerticalAlignment="Center" FontSize="{Binding BodyFontSize}" />
 				</Grid>
 
 
@@ -259,7 +258,7 @@
 						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
 					<TextBox Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding LightShowDirectory}" />
-					<Button Grid.Column="1" Content=" . . . " VerticalAlignment="Center" FontSize="{Binding BodyFontSize}" />
+					<Button Focusable="False" Grid.Column="1" Content=" . . . " VerticalAlignment="Center" FontSize="{Binding BodyFontSize}" />
 				</Grid>
 			</Grid>
 

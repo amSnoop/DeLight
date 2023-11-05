@@ -14,17 +14,18 @@ namespace DeLight.Utilities
         private static GlobalSettings? instance;
 
         public static GlobalSettings Instance => instance ??= new();
-        public static readonly int TickRate = 1000/20;// in milliseconds. this is 20 ticks per second
+        public static readonly int TickRate = 1000 / 20;// in milliseconds. this is 20 ticks per second
 
         public Cue DefaultCue { get; set; } = new();
         public string LastShowPath { get; set; } = "";
         public string VideoDirectory { get; set; } = "";
         public string LightShowDirectory { get; set; } = "";
-        public double LastVideoScreenTop { get; private set; }
-        public double LastVideoScreenLeft { get; private set; }
+        public double LastVideoScreenTop { get; set; }
+        public double LastVideoScreenLeft { get; set; }
         public int LastScreenTop { get; set; }
         public int LastScreenLeft { get; set; }
-        public int NumProjectors { get; set; } = 1;
+
+        public double MasterVolume { get; set; } = 1;
 
         public WindowState WindowState { get; set; } = WindowState.Normal;
 
@@ -34,7 +35,11 @@ namespace DeLight.Utilities
 
         public GlobalSettings()
         {
-            Console.WriteLine("Created new settings");
+            Messenger.VolumeChanged += (source, volume, cue) =>
+            {
+                if (source == VolumeSource.Master)
+                    MasterVolume = volume;
+            };
         }
 
         public static void Load()
@@ -49,8 +54,8 @@ namespace DeLight.Utilities
             {
                 Console.WriteLine("settings.json file not found. Creating new settings file.");
                 CreateNewInstance();
+                Save();
             }
-            Save();
         }
 
         public static void Save()
@@ -95,6 +100,7 @@ namespace DeLight.Utilities
         private static void CreateNewInstance()
         {
             instance = new();
+            Console.WriteLine("Created new settings");
         }
     }
 

@@ -27,34 +27,34 @@
 					<TextBox VerticalAlignment="Center" Text="{Binding Number, Mode=OneWay}" x:Name="Number" Margin="0"/>
 					<TextBox Grid.Column="2" VerticalAlignment="Center" Text="{Binding Cue.Letter}" Margin="0"/>
 				</Grid>
-				
-				
+
+
 				<TextBlock Grid.Row="1" Text="Description:" VerticalAlignment="Center" Margin="0,10"/>
 				<TextBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding Cue.Note}" />
 
-				
+
 				<TextBlock Grid.Row="2" Text="Duration:" VerticalAlignment="Center"
 						   ToolTip.Tip="A non-zero value will override the source files' expected durations. 0 is infinite or as long as the source files' durations." Margin="0,10"/>
-				<TextBox Grid.Row="2" Grid.Column="1" Width="60" HorizontalAlignment="Right" 
-						 VerticalAlignment="Center" Text="{Binding Duration, Mode=OneTime}" x:Name="Duration"/>
+				<TextBox Grid.Row="2" Grid.Column="1" Width="60" HorizontalAlignment="Right"
+						 VerticalAlignment="Center" Text="{Binding DurationString}" x:Name="Duration"/>
 
-				
+
 				<TextBlock Grid.Row="3" Text="Volume:" VerticalAlignment="Center" Margin="0,10"/>
 				<Grid Grid.Row="3" Grid.Column="1" ColumnDefinitions="*, 10,60" VerticalAlignment="Stretch">
-					<Slider HorizontalAlignment="Stretch" VerticalAlignment="Center" 
+					<Slider Focusable="False" HorizontalAlignment="Stretch" VerticalAlignment="Center"
 							Maximum="100" Minimum="0" TickFrequency="1" Value="{Binding Volume}" Margin="0" Padding="0"/>
 					<TextBox Grid.Column="2" VerticalAlignment="Center" x:Name="Volume" Text="{Binding Volume, Mode=OneWay}" />
 				</Grid>
 
 				<TextBlock Grid.Row="4" Text="Cue Ending Behavior:" VerticalAlignment="Center" Margin="0,10"/>
-				<ComboBox Grid.Row="4" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"  
-						  SelectedIndex="{Binding Cue.CueEndAction, Mode=TwoWay}" ItemsSource="{Binding EndActionStrings}" />
+				<ComboBox Focusable="False" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" ItemsSource="{Binding EndActionStrings}"
+						  SelectedIndex="{Binding Cue.CueEndAction, Mode=TwoWay}" />
 			</Grid>
 			<ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,10,0,0" >
 				<ItemsControl Background="#090909" ItemsSource="{Binding Cues}">
 					<ItemsControl.ItemTemplate>
 						<DataTemplate>
-							<Expander IsExpanded="True" Classes.Error="{Binding IsError}" BorderBrush="White" Header="{Binding Header}" Foreground="#D345A4" HorizontalAlignment="Stretch">
+							<Expander Focusable="False" IsExpanded="True" Classes.Error="{Binding IsError}" BorderBrush="White" Header="{Binding Header}" Foreground="#D345A4" HorizontalAlignment="Stretch">
 								<Grid Grid.Row="2" Grid.Column="1" x:Name="DefaultCueDisplay">
 									<Grid.RowDefinitions>
 										<RowDefinition Height="*" />
@@ -75,7 +75,7 @@
 									<TextBlock Grid.Row="1" Text="File Path:" VerticalAlignment="Center" />
 									<Grid ColumnDefinitions="20*, *,Auto" Grid.Row="1" Grid.Column="1">
 										<TextBox Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding File.FilePath}"/>
-										<Button Grid.Column="2" Content=". . ." Margin="2,0,0,0" FontSize="14" VerticalAlignment="Center" Padding="3,6" BorderThickness="1" BorderBrush="#444" Background="#333" Command="{Binding OpenFileDialog}" CommandParameter="{Binding $parent[Window]}"/>
+										<Button Focusable="False" Grid.Column="2" Content=". . ." Margin="2,0,0,0" FontSize="14" VerticalAlignment="Center" Padding="3,6" BorderThickness="1" BorderBrush="#444" Background="#333" Command="{Binding OpenFileDialog}" CommandParameter="{Binding $parent[Window]}"/>
 									</Grid>
 
 									<TextBlock Grid.Row="2" Text="Fade In:" VerticalAlignment="Center"/>
@@ -85,14 +85,14 @@
 									<TextBox Grid.Row="3" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding File.FadeOutDuration}" />
 
 									<TextBlock Grid.Row="4" Text="Cue Ending Behavior:" VerticalAlignment="Center"/>
-									<ComboBox Grid.Row="4" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"  SelectedIndex="{Binding File.EndAction, Mode=TwoWay}" ItemsSource="{Binding $parent[local:CueEditorControl].DataContext.EndActionStrings}" />
+									<ComboBox Focusable="False" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" ItemsSource="{Binding $parent[local:CueEditorControl].DataContext.EndActionStrings}" SelectedIndex="{Binding File.EndAction, Mode=TwoWay}" />
 
 									<TextBlock Grid.Row="5" Text="Duration:" VerticalAlignment="Center"  IsVisible="{Binding DurationVisibility}"/>
 									<TextBox Grid.Row="5" Grid.Column="1" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding File.Duration}" IsVisible="{Binding DurationVisibility}" />
 
 									<TextBlock Grid.Row="5" Text="Volume:" VerticalAlignment="Center" IsVisible="{Binding VolumeVisibility}"/>
 									<Grid Grid.Row="5" Grid.Column="1" ColumnDefinitions="20*, *,Auto" IsVisible="{Binding VolumeVisibility}">
-										<Slider HorizontalAlignment="Stretch" VerticalAlignment="Center" Maximum="100" Minimum="0" TickFrequency="1" Value="{Binding File.Volume}"/>
+										<Slider Focusable="False" HorizontalAlignment="Stretch" VerticalAlignment="Center" Maximum="100" Minimum="0" TickFrequency="1" Value="{Binding File.Volume}"/>
 										<TextBox Grid.Column="2" Width="50" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding File.Volume, Mode=TwoWay}" />
 									</Grid>
 								</Grid>

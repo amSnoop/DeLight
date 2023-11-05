@@ -22,13 +22,16 @@ namespace DeLight.ViewModels
         [NotifyPropertyChangedFor(nameof(Visible))]
         private Cue cue;
 
+        [ObservableProperty]
+        private double duration;
+
         public bool Visible => Cue != null;
 
         //only values that need validation are created here, all others directly bind to the cue.
         [ObservableProperty]
         private int number;
         [ObservableProperty]
-        private double duration;
+        private string durationString;
         [ObservableProperty]
         private int volume;
         [ObservableProperty]
@@ -42,7 +45,7 @@ namespace DeLight.ViewModels
         {
             this.cue = cue;
             number = cue.Number;
-            duration = cue.Duration;
+            durationString = cue.Duration.ToString();
             volume = (int)Math.Round(cue.Volume * 100);
             lightFile = new(cue.LightFile);
             screenFile = new(cue.ScreenFile);
@@ -69,10 +72,11 @@ namespace DeLight.ViewModels
                         return false;
                     Number = (int)value;
                     break;
-                case nameof(Duration):
-                    if ((double)value < 0)
+                case nameof(DurationString):
+                    var d = double.Parse((string)value);
+                    if (d < 0)
                         return false;
-                    Duration = (double)value;
+                    Duration = d;
                     break;
                 case nameof(Volume):
                     Volume = (int)value;
