@@ -75,7 +75,7 @@ namespace DeLight.Models
             {
                 Number = 2,
                 Note = "I'm leaving a note here:",
-                CueEndAction = EndAction.Loop
+                CueEndAction = EndAction.Loop,
             });
             show.Cues.Add(new Cue(@"C:\Users\Snoopy\Downloads\WCHB.mp4")
             {
@@ -103,6 +103,8 @@ namespace DeLight.Models
                 Note = "For the good of all of us,",
                 Disabled = true
             });
+            show.Cues[0].LightFile.EndAction = EndAction.Loop;
+
             return show;
         }
     }

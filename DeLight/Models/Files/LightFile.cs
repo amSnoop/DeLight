@@ -19,7 +19,12 @@ namespace DeLight.Models.Files
 
             if (string.IsNullOrEmpty(filePath))
             {
-                return new BlackoutLightFile();
+                return new BlackoutLightFile() {
+                    FadeInDuration = file.FadeInDuration,
+                    FadeOutDuration = file.FadeOutDuration,
+                    EndAction = file.EndAction
+                };
+
             }
 
             if(!Path.Exists(filePath))

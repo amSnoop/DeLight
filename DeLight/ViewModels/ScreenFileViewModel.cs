@@ -1,6 +1,7 @@
 ﻿using DeLight.Models.Files;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 
@@ -8,6 +9,7 @@ namespace DeLight.ViewModels
 {
     public partial class ScreenFileViewModel : CueFileViewModel
     {
+       
 
         private static readonly Dictionary<string[], Type> extensions = new()
         {

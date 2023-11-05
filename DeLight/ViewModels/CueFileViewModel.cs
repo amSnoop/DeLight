@@ -5,12 +5,21 @@ using DeLight.Interfaces;
 using DeLight.Models.Files;
 using DeLight.Utilities;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 
 namespace DeLight.ViewModels
 {
     public abstract partial class CueFileViewModel : ObservableObject
     {
+        public ObservableCollection<string> EndActionStrings { get; } = new() {
+            "Loop" ,
+            "Fade After End" ,
+            "Fade Before End" ,
+            "Freeze"
+        };
+
         [ObservableProperty]
         protected CueFile file;
         public string FileName => File.FilePath != null ? $" ({System.IO.Path.GetFileNameWithoutExtension(File.FilePath)})" : "";

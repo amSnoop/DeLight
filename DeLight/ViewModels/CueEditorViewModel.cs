@@ -11,7 +11,7 @@ namespace DeLight.ViewModels
 
     public partial class CueEditorViewModel : ObservableObject
     {
-        public static List<string> EndActionStrings { get; } = new() {
+        public ObservableCollection<string> EndActionStrings { get; } = new() {
             "Loop" ,
             "Fade After End" ,
             "Fade Before End" ,

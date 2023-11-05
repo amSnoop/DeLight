@@ -1,10 +1,13 @@
 ﻿using DeLight.Models.Files;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 
 namespace DeLight.ViewModels
 {
     public partial class LightFileViewModel : CueFileViewModel
     {
+       
         public LightFileViewModel(LightFile lf) : base(lf)
         {
             file = lf;
