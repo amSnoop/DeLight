@@ -33,5 +33,7 @@ namespace DeLight.Models
     //Exists only because IRunnableVisualCue is not a UIElement
     public interface IRunnableScreenCue : IRunnableVisualCue {
         public UIElement GetUIElement();
+
+        public void SendToBackground(double newCueFadeInTime);
     }
 }

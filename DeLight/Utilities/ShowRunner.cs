@@ -1,70 +1,35 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Controls.Platform;
-using Avalonia.Metadata;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DeLight.Models;
 using DeLight.Models.Files;
+using DeLight.Utilities.LightingOutput;
+using DeLight.Utilities.VideoOutput;
 using DeLight.Views;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Windows.Forms;
 
 namespace DeLight.Utilities
 {
-
-    public class CueChangedEventArgs : EventArgs
-    {
-        public enum ChangeType
-        {
-            Added,
-            Deleted,
-            Modified//unused
-        }
-        public Cue Cue { get; set; }
-        public ChangeType ActionTaken { get; set; }
-
-        public int Index { get; set; }
-        public CueChangedEventArgs(Cue cue, ChangeType actionTaken, int index)
-        {
-            Cue = cue;
-            ActionTaken = actionTaken;
-            Index = index;
-        }
-    }
     public partial class ShowRunner : ObservableObject
     {
         [ObservableProperty]
         private Show show;
-        [ObservableProperty]
-        private ObservableCollection<CueRunner> oldCues;
-
-        [ObservableProperty]
-        private CueRunner? activeCue;
-        [ObservableProperty]
-        private VideoWindow? videoWindow;//TODO: REMOVE THIS LATER. WILL MAKE SOME KIND OF VIDEO WINDOW MANAGER
 
         public event EventHandler? OnLoaded, Sorted;
 
         public ShowRunner(Show show)
         {
             Show = show;
-            oldCues = new();
-            if (!Design.IsDesignMode)
-                VideoWindow = new VideoWindow();
-            else
-            {
-                Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    VideoWindow = new VideoWindow();
-                });
-            }
-            Messenger.SeekTo += (time, play) => SeekTo(time, play);
+            Messenger.SeekTo += SeekTo;
         }
 
+
+        #region Setup Commands
+
+        //Check files for errors and set up cue property change notifcations
         public void PrepareCues()
         {
             foreach (Cue cue in Show.Cues)
@@ -76,113 +41,122 @@ namespace DeLight.Utilities
             OnLoaded?.Invoke(this, EventArgs.Empty);
         }
 
-        private void Cue_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if(sender is Cue && (e.PropertyName==nameof(Cue.Number) || e.PropertyName == nameof(Cue.Letter)))
-            {
-                Sort();
-            }
-        }
-
-        public void Play(Cue cue)
-        {
-            ShowVideoWindow();
-            CueRunner newCueRunner = new(cue, VideoWindow);
-            ActiveCue = newCueRunner;
-            Messenger.ActiveCue = newCueRunner.Cue;
-            newCueRunner.FadedIn += FadedIn;
-            newCueRunner.FadedOut += (sender, e) => OldCues.Remove((CueRunner)sender!);
-            newCueRunner.Play();
-        }
-
-
-        public void Stop()
-        {
-            ActiveCue?.Stop();
-            foreach (CueRunner cueRunner in OldCues.ToList())
-                cueRunner.Stop();
-            OldCues.Clear();
-            ActiveCue = null;
-        }
-
-        public void Pause()
-        {
-            ActiveCue?.Pause();
-            foreach (CueRunner cueRunner in OldCues.ToList())
-                cueRunner.Pause();
-        }
-        public void Unpause()
-        {
-            ActiveCue?.Unpause();
-            foreach (CueRunner cueRunner in OldCues.ToList())
-                cueRunner.Unpause();
-        }
-        public void SeekTo(double time, bool play)
-        {
-            foreach (CueRunner cueRunner in OldCues.ToList())//temporary fix for seeking
-            {
-                OldCues.Remove(cueRunner);
-                cueRunner.Stop();
-            }
-            ActiveCue?.SeekTo(time, play);
-        }
         public void AddCue(Cue cue)
         {
             Show.Cues.Add(cue);
             Sort();
         }
 
-        public void Sort()
-        {
-            Show.Cues = new(Show.Cues.OrderBy(c => c.Number).ThenBy(c => c.Letter));
-            Sorted?.Invoke(this, EventArgs.Empty);
-        }
         public void DeleteCue(Cue cue)
         {
             if (ActiveCue?.Cue == cue)
             {
-                ActiveCue.Stop();
+                Stop(ActiveCue);
                 ActiveCue = null;
             }
-            else
-                foreach (var cueRunner in OldCues.ToList())
-                {
-                    if (cueRunner.Cue == cue)
-                    {
-                        cueRunner.Stop();
-                        OldCues.Remove(cueRunner);
-                    }
-                }
+            if (OldCue?.Cue == cue)
+            {
+                Stop(OldCue);
+                OldCue = null;
+            }
             Show.Cues.Remove(cue);
         }
 
-        public void HideVideoWindow()
+        #endregion
+
+
+        #region Playback Commands
+
+
+        //Load a new cue and play it
+        public void Go(Cue cue)
         {
-            VideoWindow?.Hide();
-            Stop();
+            LightCue lc = new(cue.LightFile);
+            IRunnableScreenCue sc;
+            var sf = cue.ScreenFile;
+            if (sf.ErrorState != FileErrorState.None)
+            {
+                sc = new BlackoutScreenCue(new() { FadeInDuration = sf.FadeInDuration });
+            }
+            else if (sf is VideoFile vf)
+            {
+                sc = new VideoMediaElement(vf);
+            }
+            else if (sf is ImageFile imgf)
+            {
+                sc = new ImageMediaElement(imgf);
+            }
+            else
+            {
+                sc = new BlackoutScreenCue(new() { FadeInDuration = sf.FadeInDuration });
+            }
+            LightingManager.UpdateCue(lc);
+            VideoManager.UpdateCue(sc);
         }
 
-        public void ShowVideoWindow()
+        public void Stop()
         {
-            VideoWindow?.Show();
+            VideoManager.Stop();
+            LightingManager.Stop();
+        }
+        public void Pause()
+        {
+            LightingManager.Pause();
+            VideoManager.Pause();
+        }
+        public void Unpause()
+        {
+            VideoManager.Play();
+            LightingManager.Play();
+        }
+        public void SeekTo(double time, bool play)
+        {
+            //This should allow the old cue to be properly shown and play during hte FadeIn sequence of the new cue.
+            OldCue?.SeekTo(time, play);
+            ActiveCue?.SeekTo(time, play);
+        }
+
+        #endregion
+
+
+
+
+
+
+        #region Internal Methods
+
+        private void Stop(CueRunner? cr)
+        {
+            if (cr is not null)
+            {
+                cr.Stop();
+                VideoWindow?.Container.Children.Remove(cr.ScreenFile.GetUIElement());
+            }
         }
 
 
-        public void FadedIn(object? sender, EventArgs e)
+        //Sort the list if a cue's number or letter changed
+        private void Cue_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (sender is Cue && (e.PropertyName == nameof(Cue.Number) || e.PropertyName == nameof(Cue.Letter)))
+            {
+                Sort();
+            }
+        }
+
+        private void Sort()
+        {
+            Show.Cues = new(Show.Cues.OrderBy(c => c.Number).ThenBy(c => c.Letter));
+            Sorted?.Invoke(this, EventArgs.Empty);
+        }
+        private void OnCueRunnerFadedIn(object? sender, EventArgs e)
         {
             if (sender is CueRunner cueRunner)
             {
-                cueRunner.FadedIn -= FadedIn;
-                foreach (CueRunner activeCue in OldCues.ToList())
-                    if (activeCue != cueRunner)
-                        activeCue.Stop();
-                OldCues.Clear();
-                OldCues.Add(cueRunner);
+                OldCue?.Pause();
             }
         }
-        public void SetVideoScreen(Screen screen)
-        {
-            VideoWindow?.SetScreen(screen);
-        }
+        #endregion
+
     }
 }

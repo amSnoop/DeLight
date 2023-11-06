@@ -11,7 +11,7 @@ namespace DeLight.ViewModels
 
     public partial class CueEditorViewModel : ObservableObject
     {
-        public ObservableCollection<string> EndActionStrings { get; } = new() {
+        public static List<string> EndActionStrings { get; } = new() {
             "Loop" ,
             "Fade After End" ,
             "Fade Before End" ,
@@ -46,6 +46,7 @@ namespace DeLight.ViewModels
             this.cue = cue;
             number = cue.Number;
             durationString = cue.Duration.ToString();
+            duration = cue.Duration;
             volume = (int)Math.Round(cue.Volume * 100);
             lightFile = new(cue.LightFile);
             screenFile = new(cue.ScreenFile);
@@ -73,7 +74,7 @@ namespace DeLight.ViewModels
                     Number = (int)value;
                     break;
                 case nameof(DurationString):
-                    var d = double.Parse((string)value);
+                    var d = (double)value;
                     if (d < 0)
                         return false;
                     Duration = d;

@@ -10,7 +10,7 @@ namespace DeLight.Views
         {
             InitializeComponent();
             Volume.PropertyChanged += Property_Changed;
-            Duration.PropertyChanged += Property_Changed;
+            DurationString.PropertyChanged += Property_Changed;
             Number.PropertyChanged += Property_Changed;
         }
 
@@ -24,7 +24,7 @@ namespace DeLight.Views
                     if (valid)
                         valid = cevm.Validate(tb.Name, number);
                 }
-                else if (tb.Name == "Duration")
+                else if (tb.Name == "DurationString")
                 {
                     valid = double.TryParse(txt, out double number);
                     if (valid)

@@ -16,7 +16,7 @@ namespace DeLight.ViewModels
         public string HeaderStart => "Lights: ";
         public string HeaderEnd => File is BlackoutLightFile ? "Blackout" : ReasonString;
         public string ReasonString => FileErrorState.None != File.ErrorState ? $"{File.ErrorState}" : "Ready";
-        public string Header => $"{HeaderStart}{HeaderEnd}";
+        public new string Header => $"{HeaderStart}{HeaderEnd}";
         protected override void OnPathChanged(string path)
         {
             var file = (LightFile)File;

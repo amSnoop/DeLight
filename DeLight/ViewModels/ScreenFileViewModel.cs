@@ -37,7 +37,7 @@ namespace DeLight.ViewModels
         public string HeaderEnd => File is BlackoutScreenFile ? "Blackout" : ReasonString;
         public string ReasonString => FileErrorState.None != File.ErrorState ? $"{File.ErrorState}" : friendlyName[File.GetType()];
 
-        public string Header => $"{HeaderStart}{HeaderEnd}";
+        public new string Header => $"{HeaderStart}{HeaderEnd}";
         protected override void OnPathChanged(string s)
         {
             var file = (ScreenFile)File;

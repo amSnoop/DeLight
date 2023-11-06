@@ -3,12 +3,12 @@ using System;
 using DeLight.Models;
 using System.Threading.Tasks;
 
-namespace DeLight.Utilities
+namespace DeLight.Utilities.VideoOutput
 {
 
     /*
      *
-     *  This is the meat of the project. This is where the magic happens.
+     *  This is the meat of the project. This is where the magic happens. lol not rly
      *  
      *  
      *
@@ -23,17 +23,17 @@ namespace DeLight.Utilities
             if (file.EndAction == EndAction.Loop)
                 MediaEnded += (s, e) => Restart();
             else
-                MediaEnded += (s,e) => TriggerPlaybackEnded();
+                MediaEnded += (s, e) => TriggerPlaybackEnded();
         }
         //Loops the video without a fade
         public override void Restart()
         {
-            Stop();
             Position = TimeSpan.Zero;
             Play();
         }
         public override void SeekTo(double time, bool play)
         {
+            Pause();
             Duration ??= NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : null;
             if (Duration == null)
                 throw new NullReferenceException("Attempted to seek to a time in a file with a null duration.");
@@ -75,7 +75,7 @@ namespace DeLight.Utilities
 
         public void SetVolume(VolumeSource src, double vol)
         {
-            if(src == VolumeSource.Cue)
+            if (src == VolumeSource.Cue)
                 file.Volume = vol;
             Volume = file.Volume * GlobalSettings.Instance.MasterVolume;
         }

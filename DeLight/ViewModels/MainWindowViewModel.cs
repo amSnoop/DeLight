@@ -161,7 +161,7 @@ namespace DeLight.ViewModels
                 curCue.Active = false;
             if (SelectedCue != null && SelectedCue.Cue != null)
             {
-                showRunner.Play(SelectedCue.Cue);
+                showRunner.Go(SelectedCue.Cue);
                 SelectedCue.Active = true;
                 if (CuePlaybackViewModel == null)
                     CuePlaybackViewModel = new CuePlaybackViewModel(SelectedCue.Cue);

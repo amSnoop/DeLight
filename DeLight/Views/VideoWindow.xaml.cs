@@ -1,5 +1,4 @@
-﻿using DeLight.Utilities;
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -39,10 +38,14 @@ namespace DeLight.Views
 
         public new void Hide()
         {
-            this.Visibility = Visibility.Hidden;
+            Visibility = Visibility.Hidden;
             ClearAllMediaElements();
         }
 
+        public void RemoveMediaElement(UIElement mediaElement)
+        {
+            Container.Children.Remove(mediaElement);
+        }
 
         private void ClearAllMediaElements()
         {

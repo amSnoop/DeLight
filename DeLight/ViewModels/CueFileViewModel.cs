@@ -28,6 +28,7 @@ namespace DeLight.ViewModels
 
         public event EventHandler? FileTypeChanged;
 
+        public string Header { get; } = "";
         public bool IsError => File.ErrorState != FileErrorState.None;
         protected void OnFileTypeChanged(object? sender)
         {

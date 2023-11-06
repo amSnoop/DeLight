@@ -5,6 +5,7 @@ using Avalonia.Markup.Xaml;
 using DeLight.Models;
 using DeLight.Utilities;
 using DeLight.Utilities.LightingOutput;
+using DeLight.Utilities.VideoOutput;
 using DeLight.ViewModels;
 using DeLight.Views;
 
@@ -27,6 +28,7 @@ namespace DeLight
                 GlobalSettings.Load();
                 ShowRunner show = new(Show.Load(GlobalSettings.Instance.LastShowPath));
                 LightingController.Start();
+                VideoManager.Startup();
                 desktop.MainWindow = new MainWindow() 
                 {
                     DataContext = new MainWindowViewModel(show)

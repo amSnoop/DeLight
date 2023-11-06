@@ -13,16 +13,15 @@ namespace DeLight.Utilities
     public static class Messenger
     {
 
-        public static Cue? ActiveCue;
         public static event EventHandler<CueTickEventArgs>? CueTick;
 
         public static event Action<double, bool>? SeekTo;
 
         public static event Action<VolumeSource, double, Cue?>? VolumeChanged;
-        public static void SendCueTick(object sender, CueTickEventArgs e)
+
+        public static void SendCueTick(object? sender, CueTickEventArgs e)
         {
-            if (sender == ActiveCue)
-                CueTick?.Invoke(sender, e);
+            CueTick?.Invoke(sender, e);
         }
 
         public static void SendSeekTo(double time, bool play)

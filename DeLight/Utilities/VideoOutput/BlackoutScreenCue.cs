@@ -7,7 +7,7 @@ using System.Windows.Media.Animation;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace DeLight.Utilities
+namespace DeLight.Utilities.VideoOutput
 {
 
 
@@ -20,7 +20,7 @@ namespace DeLight.Utilities
      * There is some special SeekTo logic that handles partial fadeins, but otherwise most of this is just barebones implementation of the IRunnableScreenCue interface.
      * 
      */
-    public class BlackoutVisualCue : Border, IRunnableScreenCue
+    public class BlackoutScreenCue : Border, IRunnableScreenCue
     {
         public List<Storyboard> storyboards = new();
         public bool IsFadingOut { get; private set; } = false;
@@ -35,7 +35,7 @@ namespace DeLight.Utilities
         public event EventHandler? FadedOut;
         public event EventHandler? PlaybackEnded;
 
-        public BlackoutVisualCue(BlackoutScreenFile file)
+        public BlackoutScreenCue(BlackoutScreenFile file)
         {
             File = file;
             HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -114,6 +114,9 @@ namespace DeLight.Utilities
         }
 
         public UIElement GetUIElement() => this;
+
+        public void SendToBackground(double newCueFadeInTime) { }
+
         public void Stop()
         {
             ClearCurrentAnimations();

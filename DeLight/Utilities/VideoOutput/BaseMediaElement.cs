@@ -11,7 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
 
-namespace DeLight.Utilities
+namespace DeLight.Utilities.VideoOutput
 {
     public class BaseMediaElement : MediaElement, IRunnableScreenCue
     {
@@ -32,6 +32,11 @@ namespace DeLight.Utilities
         protected bool IsFadedOut { get => Opacity == 0; }
 
         public double? Duration { get; protected set; } = null;
+
+        protected double NextCueFadeInTimeStamp { get; set; } = 0;
+        protected double NextCueFadeInDuration { get; set; } = 0;
+        protected bool IsInBackground { get; set; } = false;
+
 
         public BaseMediaElement(ScreenFile file) : base()
         {
@@ -55,7 +60,12 @@ namespace DeLight.Utilities
 
 
         #region Interface Methods
-
+        public void SendToBackground(double newCueFadeinDuration)
+        {
+            IsInBackground = true;
+            NextCueFadeInDuration = newCueFadeinDuration;
+            NextCueFadeInTimeStamp = (double)Position.TotalSeconds;
+        }
         public void ClearCurrentAnimations()
         {
             foreach (Storyboard storyboard in storyboards)
@@ -139,9 +149,12 @@ namespace DeLight.Utilities
         #endregion
 
         #region Event Handlers for Video End Actions
+
+
+
         public void OnFadedOut(object? s, EventArgs e)
         {
-            Stop();
+            Pause();
             IsFadingOut = false;
             storyboards.Clear();
         }
@@ -165,8 +178,13 @@ namespace DeLight.Utilities
                 throw new NullReferenceException("Attempted to fetch opacity on a file with null duration.");
 
             double opacity;
-
-            if (time < File.FadeInDuration)
+            if (IsInBackground)
+                time = NextCueFadeInTimeStamp + time;
+            if(IsInBackground && time > NextCueFadeInTimeStamp + NextCueFadeInDuration)
+            {
+                opacity = 0;
+            }
+            else if (time < File.FadeInDuration)
                 opacity = time / File.FadeInDuration;
             else if (File.EndAction == EndAction.FadeAfterEnd)
             {
@@ -177,7 +195,7 @@ namespace DeLight.Utilities
                     if (File.FadeOutDuration == 0)
                         opacity = 0;
                     else
-                        opacity = 1 - ((time - (double)Duration) / File.FadeOutDuration);
+                        opacity = 1 - (time - (double)Duration) / File.FadeOutDuration;
                 }
             }
             else if (File.EndAction == EndAction.FadeBeforeEnd)
@@ -187,7 +205,7 @@ namespace DeLight.Utilities
                     if (File.FadeOutDuration == 0)
                         opacity = 0;
                     else
-                        opacity = 1 - (((double)Duration - time) / File.FadeOutDuration);
+                        opacity = 1 - ((double)Duration - time) / File.FadeOutDuration;
                 }
                 else
                     opacity = 1;
