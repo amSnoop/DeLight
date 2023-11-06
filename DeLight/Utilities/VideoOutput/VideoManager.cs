@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
+using System.Windows.Controls;
 
 namespace DeLight.Utilities.VideoOutput
 {
@@ -17,9 +18,9 @@ namespace DeLight.Utilities.VideoOutput
 
         private static List<BaseMediaElement> MediaElements => VideoWindow?.Container.Children.OfType<BaseMediaElement>().ToList() ?? new();
 
-        private static IRunnableScreenCue? currentCue = null;
+        private static CueInfoPacket<IRunnableScreenCue>? currentCue = null;
 
-        private static IRunnableScreenCue? prevCue = null;
+        private static CueInfoPacket<IRunnableScreenCue>? prevCue = null;
 
         private static Timer? timer = null;
 
@@ -63,17 +64,21 @@ namespace DeLight.Utilities.VideoOutput
             ShowVideoWindow();
             if (prevCue != null) RemoveCue(prevCue);
             prevCue = currentCue;
-            if(prevCue != null)
-                prevCue?.SendToBackground(cip.Cue.File.FadeInDuration);
-            currentCue = cip.Cue;
+            if (prevCue != null)
+                prevCue?.Cue.SendToBackground(cip.Cue.File.FadeInDuration);
+            currentCue = cip;
+            if (cip.RealDuration == 0)
+            {
+
+            }
             Play();
         }
-        private static void RemoveCue(IRunnableScreenCue cue)
+        private static void RemoveCue(CueInfoPacket<IRunnableScreenCue> cip)
         {
-            if (MediaElements.Contains(cue))
+            if (MediaElements.Contains(cip.Cue))
             {
-                cue.Stop();
-                VideoWindow?.RemoveMediaElement(cue.GetUIElement());
+                cip.Cue.Stop();
+                VideoWindow?.RemoveMediaElement(cip.Cue.GetUIElement());
             }
         }
 
@@ -107,6 +112,9 @@ namespace DeLight.Utilities.VideoOutput
             ShowVideoWindow();
             VideoWindow?.SetScreen(screen);
         }
+        public static void FetchBGOpacity()
+        {
 
+        }
     }
 }

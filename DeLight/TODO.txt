@@ -9,3 +9,42 @@ Add a context Menu for the cue list
 Add a Add Cue button
 Add tooltips
 Add a Shortcuts view
+
+
+Design Documentation:
+
+Video and Lighting Managers are static classes that are used to control the video and lighting hardware. They take in new cue info from the ShowRunner and act upon it.
+They listen to Messenger events to know when to change certain traits like volume or seeking. They also listen to the ShowRunner to know when to start and stop the show.
+
+THe Managers use a CueInfoPacket of their respective type to gather information about the cue. THey then process that to determine important timings like when to start fading out.
+
+The lighting manager's timer ticks are iven to it by the LightingControl, which ticks once every 20th of a second to request new information. 
+
+The VideoManager has its own internal timer that it uses to look for the FadeOutStartTime.
+
+
+Test for new MediaElement or maybe the VideoManager and an intermediary:
+
+double netPosition (the position that the video should be at) 
+
+double rawPosition (the position the Cue is at)
+
+double clipDuration (the duration of the clip)
+
+double cueDuration (the duration of the cue)
+
+double fadeOutStartTime (the time that the fade out should start)
+
+bool loop (whether or not the video should loop)
+
+double nextCueStartTime (the time that this cue should be faded out and paused by.)
+
+
+methods: 
+
++ void UpdatePosition(double position) - updates the netPosition and rawPosition
+
+- double GetNetPosition() - returns the netPosition
+
+- double FetchOpacity() - returns the opacity of the video based on the netPosition and fadeOutStartTime
+

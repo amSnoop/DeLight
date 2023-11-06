@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
@@ -17,33 +18,31 @@ namespace DeLight.Utilities.VideoOutput
     {
         private readonly TaskCompletionSource<bool> tcs = new();
         private readonly List<Storyboard> storyboards = new();
-
-        protected double? fadeOutStartTime;
-
-
-        public event EventHandler? FadedIn, FadedOut, PlaybackEnded;
-
-        public ScreenFile File { get; private set; }
-
-        CueFile IRunnableVisualCue.File => File;
-
         public bool IsFadingOut { get; protected set; } = false; //Used to prevent the fade out from being called multiple times
 
-        protected bool IsFadedOut { get => Opacity == 0; }
 
-        public double? Duration { get; protected set; } = null;
+        public ScreenFile File { get; set; }
 
-        protected double NextCueFadeInTimeStamp { get; set; } = 0;
-        protected double NextCueFadeInDuration { get; set; } = 0;
-        protected bool IsInBackground { get; set; } = false;
+        public double FileDuration { get; protected set; } = -1;
+        public double CueDuration { get; protected set; } = 0;
+        public double RawCuePosition { get; protected set; } = 0;
+
+        public double intendedFadeOutStartTime { get; protected set; } = 0;
+
+        public double? NextCueStartTime { get; set; } = null;
+        private bool loop;
+
+        private EndAction cueEndAction;
+
+        private bool useCueTimeForFadeOut = false;
 
 
-        public BaseMediaElement(ScreenFile file) : base()
+        public BaseMediaElement(ScreenFile file, double cueDuration, EndAction cueEndAction)
         {
             LoadedBehavior = MediaState.Manual;
             UnloadedBehavior = MediaState.Manual;
-            File = file;
             IsMuted = false;
+            File = file;
             try
             {
                 Source = new Uri(file.FilePath);
@@ -54,18 +53,34 @@ namespace DeLight.Utilities.VideoOutput
                 Console.WriteLine(e);
             }
             Opacity = 0;
-            FadedOut += OnFadedOut;
             MediaOpened += (s, e) => tcs.SetResult(true);
+
+            loop = file.EndAction == EndAction.Loop;
+            CueDuration = cueDuration;
+            this.cueEndAction = cueEndAction;
         }
 
-
-        #region Interface Methods
-        public void SendToBackground(double newCueFadeinDuration)
+        private double GetIntendedFadeoutStartTime()
         {
-            IsInBackground = true;
-            NextCueFadeInDuration = newCueFadeinDuration;
-            NextCueFadeInTimeStamp = (double)Position.TotalSeconds;
+            intendedFadeOutStartTime = double.MaxValue;
+            useCueTimeForFadeOut = false;
+            if(CueDuration == 0)
+            {
+                if(File.EndAction == EndAction.FadeAfterEnd)
+                {
+                    intendedFadeOutStartTime = FileDuration;
+                }
+                else if(File.EndAction == EndAction.FadeBeforeEnd)
+                {
+                    intendedFadeOutStartTime = FileDuration - File.FadeOutDuration;
+                }
+            }
+            else
+            {
+                if()
+            }
         }
+        #region Interface Methods
         public void ClearCurrentAnimations()
         {
             foreach (Storyboard storyboard in storyboards)
@@ -81,19 +96,12 @@ namespace DeLight.Utilities.VideoOutput
             Stop();
 
             await tcs.Task;
-            Duration ??= NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : null;
-            if (Duration != null)
-            {
-                if (File.EndAction == EndAction.FadeBeforeEnd)
-                {
-                    fadeOutStartTime = (double)Duration - File.FadeOutDuration;
-                }
-                else if (File.EndAction == EndAction.FadeAfterEnd)
-                {
-                    fadeOutStartTime = (double)Duration;
-                }
+            if(FileDuration == -1)
+                FileDuration = NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : -1;
+            if (FileDuration == -1)
+                throw new NullReferenceException("Attempted to load a file with a null duration.");
 
-            }
+            intendedFadeOutStartTime = GetIntendedFadeoutStartTime();
         }
 
         public virtual void Restart() { }
@@ -105,7 +113,6 @@ namespace DeLight.Utilities.VideoOutput
             ClearCurrentAnimations();
             Play();
             DoubleAnimation fadeIn = new(1, TimeSpan.FromSeconds(File.FadeInDuration - startTime));
-            fadeIn.Completed += (s, e) => TriggerFadedIn();
             BeginAnimation(fadeIn);
         }
 
@@ -116,12 +123,14 @@ namespace DeLight.Utilities.VideoOutput
             Play();
             IsFadingOut = true;
             DoubleAnimation fadeOut = new(0, TimeSpan.FromSeconds(File.FadeOutDuration - (startTime - (double)(fadeOutStartTime ?? startTime))));
-            fadeOut.Completed += (s, e) => TriggerFadedOut();
             BeginAnimation(fadeOut);
 
         }
 
-        public virtual void SendTimeUpdate(double time) { }
+        public virtual void SendTimeUpdate(double rawCueTime)
+        {
+            
+        }
 
         //Only plays hte video. not from start, no seeking, just plays.
         public new virtual void Play()
@@ -180,7 +189,7 @@ namespace DeLight.Utilities.VideoOutput
             double opacity;
             if (IsInBackground)
                 time = NextCueFadeInTimeStamp + time;
-            if(IsInBackground && time > NextCueFadeInTimeStamp + NextCueFadeInDuration)
+            if (IsInBackground && time > NextCueFadeInTimeStamp + NextCueFadeInDuration)
             {
                 opacity = 0;
             }
@@ -215,19 +224,6 @@ namespace DeLight.Utilities.VideoOutput
             Opacity = Math.Clamp(opacity, 0, 1);
         }
 
-        protected void TriggerFadedIn()
-        {
-            FadedIn?.Invoke(this, EventArgs.Empty);
-        }
-        protected void TriggerFadedOut()
-        {
-            IsFadingOut = false;
-            FadedOut?.Invoke(this, EventArgs.Empty);
-        }
-        protected void TriggerPlaybackEnded()
-        {
-            PlaybackEnded?.Invoke(this, EventArgs.Empty);
-        }
         #endregion
     }
 }

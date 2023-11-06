@@ -125,15 +125,6 @@ namespace DeLight.Utilities
 
         #region Internal Methods
 
-        private void Stop(CueRunner? cr)
-        {
-            if (cr is not null)
-            {
-                cr.Stop();
-                VideoWindow?.Container.Children.Remove(cr.ScreenFile.GetUIElement());
-            }
-        }
-
 
         //Sort the list if a cue's number or letter changed
         private void Cue_PropertyChanged(object? sender, PropertyChangedEventArgs e)
