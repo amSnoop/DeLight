@@ -3,6 +3,7 @@ using DeLight.Models;
 using System;
 using System.Management;
 using System.Net.WebSockets;
+using System.Threading.Tasks;
 
 namespace DeLight.Utilities.LightingOutput
 {
@@ -41,6 +42,13 @@ namespace DeLight.Utilities.LightingOutput
      * 
      */
 
+
+    /*
+     * 
+     * More massive refactoring: (this is the current plan)
+     * THis needs to manage the cue and its duration checking to see what needs to happen to the lights at any given time. At the moment, everything is controlled by the Light file.
+     * 
+     */
     public static class LightingManager
     {
 
@@ -56,27 +64,35 @@ namespace DeLight.Utilities.LightingOutput
         private static byte[] fadeOutStartValues = new byte[512];
 
         private static int fadeOutStartTime, fadeOutDuration;
-        public static void UpdateCue(LightCue? cue)
+        public static async Task UpdateCue(Cue? cue)
         {
             if(cue == null)
             {
                 activeCue = null;
                 return;
             }
-            valuesWhenCueChanged = (byte[])lastSentValues.Clone();
-            activeCue = cue;
-            if (cue.FadeOutStartTime != null)
+            LightCue c = new(cue.LightFile);
+            await c.LoadAsync();
+            if(c == null)
             {
-                fadeOutStartTime = (int)Math.Round((double)cue.FadeOutStartTime * 100);//HoS
+                activeCue = null;
+                return;
+            }
+            valuesWhenCueChanged = (byte[])lastSentValues.Clone();
+            activeCue = c;
+            if (c.FadeOutStartTime != null)
+            {
+                fadeOutStartTime = (int)Math.Round((double)c.FadeOutStartTime * 100);//HoS
                 fadeOutStartValues = DoLinearInterpolation(fadeOutStartTime);//HoS
             }
             else
             {
                 fadeOutStartTime = int.MaxValue;
             }
-            fadeOutDuration = (int)Math.Round(cue.File.FadeOutDuration);
+            fadeOutDuration = (int)Math.Round(c.File.FadeOutDuration);
             Position = 0;
             isPaused = false;
+            return;
         }
 
         public static byte[] RequestValues(int HoSPassed)//Hundtedths of a second that have passed since last request
@@ -194,6 +210,22 @@ namespace DeLight.Utilities.LightingOutput
         public static void Pause()
         {
             isPaused = true;
+        }
+
+
+        public static void SeekTo(double time, bool play)
+        {
+            Pause();
+            Position = (int)Math.Round(time * 100);
+            if (play)
+            {
+                Play();
+            }
+        }
+
+        public static void Stop()
+        {
+            UpdateCue(null);
         }
     }
 }

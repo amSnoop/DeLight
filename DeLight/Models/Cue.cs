@@ -77,18 +77,18 @@ namespace DeLight.Models
         public void SetScreenFile(ScreenFile file)
         {
             ScreenFile = file;
-            file.PropertyChanged += (s, e) => OnFilePropertyChanged(file);
+            file.PropertyChanged += (s, e) => OnFilePropertyChanged();
             OnPropertyChanged(nameof(ScreenFile));
         }
 
         public void SetLightFile(LightFile file)
         {
             LightFile = file;
-            file.PropertyChanged += (s, e) => OnFilePropertyChanged(file);
+            file.PropertyChanged += (s, e) => OnFilePropertyChanged();
             OnPropertyChanged(nameof(LightFile));
         }
 
-        private void OnFilePropertyChanged(CueFile file)
+        private void OnFilePropertyChanged()
         {
             OnPropertyChanged(nameof(ScreenFile));
             OnPropertyChanged(nameof(LightFile));

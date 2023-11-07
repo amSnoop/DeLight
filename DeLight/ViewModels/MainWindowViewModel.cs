@@ -8,6 +8,8 @@ using DeLight.Utilities;
 using System.Diagnostics;
 using System.Collections.ObjectModel;
 using DeLight.Models;
+using DeLight.Utilities.VideoOutput;
+using System.Threading.Tasks;
 
 namespace DeLight.ViewModels
 {
@@ -112,17 +114,17 @@ namespace DeLight.ViewModels
                 if (Screen.PrimaryScreen == null)
                 {
                     SelectedMonitor = Monitors.FirstOrDefault() ?? "";
-                    showRunner.SetVideoScreen(_screenObjects.First());
+                    VideoManager.SetVideoScreen(_screenObjects.First());
                 }
                 else
                 {
                     SelectedMonitor = Monitors[_screenObjects.IndexOf(Screen.PrimaryScreen)];
-                    showRunner.SetVideoScreen(Screen.PrimaryScreen);
+                    VideoManager.SetVideoScreen(Screen.PrimaryScreen);
                 }
             else
             {
                 SelectedMonitor = Monitors[_screenObjects.IndexOf(GlobalSettings.Instance.Screen)];
-                showRunner.SetVideoScreen(GlobalSettings.Instance.Screen);
+                VideoManager.SetVideoScreen(GlobalSettings.Instance.Screen);
             }
             SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanged;
         }
@@ -146,22 +148,22 @@ namespace DeLight.ViewModels
                 return;
             }
             var screen = _screenObjects[Monitors.IndexOf(SelectedMonitor)];
-            showRunner.SetVideoScreen(screen);
+            VideoManager.SetVideoScreen(screen);
             selectedScreen = screen;
             GlobalSettings.Instance.Screen = screen;
         }
 
         #endregion
 
-        public void PlayCue()
+        public async Task PlayCue()
         {
             SelectedCue ??= Cues.FirstOrDefault();
-            var curCue = Cues.FirstOrDefault(c => c.Cue == showRunner?.ActiveCue?.Cue);
+            var curCue = Cues.FirstOrDefault(c => c.Cue == showRunner?.ActiveCue);
             if (curCue != null)
                 curCue.Active = false;
             if (SelectedCue != null && SelectedCue.Cue != null)
             {
-                showRunner.Go(SelectedCue.Cue);
+                await showRunner.Go(SelectedCue.Cue);
                 SelectedCue.Active = true;
                 if (CuePlaybackViewModel == null)
                     CuePlaybackViewModel = new CuePlaybackViewModel(SelectedCue.Cue);
@@ -176,6 +178,7 @@ namespace DeLight.ViewModels
                     }
                 SelectedCue = null;
             }
+            return;
         }
         public void StopCue()
         {
@@ -197,11 +200,11 @@ namespace DeLight.ViewModels
         public void HideVideoWindow()
         {
             showRunner.Stop();
-            showRunner.HideVideoWindow();
+            VideoManager.HideVideoWindow();
         }
         public void ShowVideoWindow()
         {
-            showRunner.ShowVideoWindow();
+            VideoManager.ShowVideoWindow();
         }
 
         public void DeleteCue(Cue? cue)

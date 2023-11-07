@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DeLight.Utilities
 {
@@ -20,6 +21,8 @@ namespace DeLight.Utilities
 
         public event EventHandler? OnLoaded, Sorted;
 
+
+        public Cue? ActiveCue;
         public ShowRunner(Show show)
         {
             Show = show;
@@ -49,15 +52,9 @@ namespace DeLight.Utilities
 
         public void DeleteCue(Cue cue)
         {
-            if (ActiveCue?.Cue == cue)
+            if(cue == ActiveCue)
             {
-                Stop(ActiveCue);
-                ActiveCue = null;
-            }
-            if (OldCue?.Cue == cue)
-            {
-                Stop(OldCue);
-                OldCue = null;
+                Stop();
             }
             Show.Cues.Remove(cue);
         }
@@ -69,33 +66,16 @@ namespace DeLight.Utilities
 
 
         //Load a new cue and play it
-        public void Go(Cue cue)
+        public async Task Go(Cue? cue)
         {
-            LightCue lc = new(cue.LightFile);
-            IRunnableScreenCue sc;
-            var sf = cue.ScreenFile;
-            if (sf.ErrorState != FileErrorState.None)
-            {
-                sc = new BlackoutScreenCue(new() { FadeInDuration = sf.FadeInDuration });
-            }
-            else if (sf is VideoFile vf)
-            {
-                sc = new VideoMediaElement(vf);
-            }
-            else if (sf is ImageFile imgf)
-            {
-                sc = new ImageMediaElement(imgf);
-            }
-            else
-            {
-                sc = new BlackoutScreenCue(new() { FadeInDuration = sf.FadeInDuration });
-            }
-            LightingManager.UpdateCue(lc);
-            VideoManager.UpdateCue(sc);
+            ActiveCue = cue;
+            await LightingManager.UpdateCue(cue);
+            await VideoManager.UpdateCue(cue);
         }
 
         public void Stop()
         {
+            ActiveCue = null;
             VideoManager.Stop();
             LightingManager.Stop();
         }
@@ -112,8 +92,8 @@ namespace DeLight.Utilities
         public void SeekTo(double time, bool play)
         {
             //This should allow the old cue to be properly shown and play during hte FadeIn sequence of the new cue.
-            OldCue?.SeekTo(time, play);
-            ActiveCue?.SeekTo(time, play);
+            VideoManager.SeekTo(time, play);
+            LightingManager.SeekTo(time, play);
         }
 
         #endregion
@@ -140,13 +120,7 @@ namespace DeLight.Utilities
             Show.Cues = new(Show.Cues.OrderBy(c => c.Number).ThenBy(c => c.Letter));
             Sorted?.Invoke(this, EventArgs.Empty);
         }
-        private void OnCueRunnerFadedIn(object? sender, EventArgs e)
-        {
-            if (sender is CueRunner cueRunner)
-            {
-                OldCue?.Pause();
-            }
-        }
+
         #endregion
 
     }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Media.Animation;
 using System.Windows;
 using System.Windows.Controls;
+using DeLight.Interfaces;
 
 namespace DeLight.Utilities.VideoOutput
 {
@@ -25,7 +26,7 @@ namespace DeLight.Utilities.VideoOutput
         public List<Storyboard> storyboards = new();
         public bool IsFadingOut { get; private set; } = false;
 
-        public double? Duration => File.FadeInDuration + 1;
+        public double Duration => File.FadeInDuration + 1;
 
         public BlackoutScreenFile File { get; }
 
@@ -115,7 +116,7 @@ namespace DeLight.Utilities.VideoOutput
 
         public UIElement GetUIElement() => this;
 
-        public void SendToBackground(double newCueFadeInTime) { }
+        public void SendToBackground(double newCueFadeInTime, Action<int> t) { }
 
         public void Stop()
         {
@@ -160,5 +161,9 @@ namespace DeLight.Utilities.VideoOutput
                 Opacity = 1;
             }
         }
+
+        public void FadeBeforeEnd(Action<int> action) { }
+
+        public void FadeAfterEnd() { }
     }
 }

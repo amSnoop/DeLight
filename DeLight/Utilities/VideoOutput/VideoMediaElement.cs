@@ -5,14 +5,6 @@ using System.Threading.Tasks;
 
 namespace DeLight.Utilities.VideoOutput
 {
-
-    /*
-     *
-     *  This is the meat of the project. This is where the magic happens. lol not rly
-     *  
-     *  
-     *
-     */
     public class VideoMediaElement : BaseMediaElement
     {
         private readonly VideoFile file;
@@ -34,8 +26,9 @@ namespace DeLight.Utilities.VideoOutput
         public override void SeekTo(double time, bool play)
         {
             Pause();
-            Duration ??= NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : null;
-            if (Duration == null)
+            if(Duration == -1)
+                Duration = NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : -1;
+            if (Duration == -1)
                 throw new NullReferenceException("Attempted to seek to a time in a file with a null duration.");
 
             Position = TimeSpan.FromSeconds(
@@ -44,29 +37,30 @@ namespace DeLight.Utilities.VideoOutput
                                                 Math.Min(time, (double)Duration));
 
             FetchOpacity(time);
-            if (play)
-            {
-                if (time < File.FadeInDuration)
-                    FadeIn(time);
-                else if (time < fadeOutStartTime || File.EndAction == EndAction.Loop || File.EndAction == EndAction.Freeze)
-                    Play();
+            if(!IsInBackground || Opacity > 0)
+                if (play)
+                {
+                    if (time < File.FadeInDuration)
+                        FadeIn(time);
+                    else if (time < intendedFadeOutStartTime || File.EndAction == EndAction.Loop || File.EndAction == EndAction.Freeze)
+                        Play();
+                    else
+                        FadeOut(time);
+                }
                 else
-                    FadeOut(time);
-            }
-            else
-            {
-                double vol = Volume;
-                Volume = 0;
-                Play();
-                System.Threading.Thread.Sleep(1);//This is a hack to get around a bug where the video will not seek to the correct position if it is not playing
-                Pause();
-                Volume = vol;
-            }
+                {
+                    double vol = Volume;
+                    Volume = 0;
+                    Play();
+                    System.Threading.Thread.Sleep(1);//This is a hack to get around a bug where the video will not seek to the correct position if it is not playing
+                    Pause();
+                    Volume = vol;
+                }
         }
         public override void SendTimeUpdate(double time)
         {
             if (!IsFadingOut)
-                if (time > fadeOutStartTime)
+                if (time > intendedFadeOutStartTime)
                 {
                     FetchOpacity(time);
                     FadeOut(time);

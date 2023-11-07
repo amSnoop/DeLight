@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using static DeLight.ViewModels.CueListContextMenuButtonClickedEventArgs;
 using System.Linq;
+using DeLight.Utilities.VideoOutput;
 
 namespace DeLight.Views
 {
@@ -87,6 +88,7 @@ namespace DeLight.Views
                 {
                     cue.ButtonClicked += CueListContextMenuClicked;
                 }
+            VideoManager.HideVideoWindow();
         }
         public void MainWindow_MouseDown(object? sender, PointerPressedEventArgs e)
         {
@@ -111,7 +113,7 @@ namespace DeLight.Views
             base.OnClosing(e);
             (DataContext as MainWindowViewModel)?.HideVideoWindow();
         }
-        protected void OnKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+        protected async void OnKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
 
         {
             base.OnKeyDown(e);
@@ -127,7 +129,7 @@ namespace DeLight.Views
             }
             else if (e.Key == Avalonia.Input.Key.Space && DataContext is MainWindowViewModel vm && Keyboard.FocusedElement is not TextBox)
             {
-                vm.PlayCue();
+                await vm.PlayCue();
                 e.Handled = true;
             }
             else

@@ -1,9 +1,10 @@
-﻿using DeLight.Models.Files;
+﻿using DeLight.Interfaces;
+using DeLight.Models.Files;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace DeLight.Models
+namespace DeLight.Interfaces
 {
     public interface IRunnableVisualCue
     {
@@ -11,9 +12,9 @@ namespace DeLight.Models
         public double Opacity { get; }
 
         public bool IsFadingOut { get; }
-        public event EventHandler? FadedIn, FadedOut, PlaybackEnded;
+        public event EventHandler? PlaybackEnded;
 
-        public double? Duration { get; }
+        public double Duration { get; }
 
         public void Play();
         public void Pause();
@@ -34,6 +35,10 @@ namespace DeLight.Models
     public interface IRunnableScreenCue : IRunnableVisualCue {
         public UIElement GetUIElement();
 
-        public void SendToBackground(double newCueFadeInTime);
+        public void SendToBackground(double newCueFadeInDuration, Action<int> action);
+
+        public void FadeBeforeEnd(Action<int> action);
+
+        public void FadeAfterEnd();
     }
 }

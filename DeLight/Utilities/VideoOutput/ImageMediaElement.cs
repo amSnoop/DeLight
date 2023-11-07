@@ -24,7 +24,7 @@ namespace DeLight.Utilities
             if (play)
                 if (time < File.FadeInDuration)
                     FadeIn(time);
-                else if (time < fadeOutStartTime || File.EndAction == EndAction.Loop || File.EndAction == EndAction.Freeze)
+                else if (time < intendedFadeOutStartTime || File.EndAction == EndAction.Loop || File.EndAction == EndAction.Freeze)
                     Play();
                 else
                     FadeOut(time);
@@ -34,7 +34,7 @@ namespace DeLight.Utilities
         {
             if (File.EndAction == EndAction.FadeAfterEnd || File.EndAction == EndAction.FadeBeforeEnd)
                 if (!IsFadingOut)
-                    if (time > fadeOutStartTime)
+                    if (time > intendedFadeOutStartTime)
                     {
                         FetchOpacity(time);
                         FadeOut(time);

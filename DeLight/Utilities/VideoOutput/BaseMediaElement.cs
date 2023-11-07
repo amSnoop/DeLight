@@ -1,6 +1,8 @@
 ﻿using Avalonia.Animation;
+using DeLight.Interfaces;
 using DeLight.Models;
 using DeLight.Models.Files;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,21 +25,20 @@ namespace DeLight.Utilities.VideoOutput
 
         public ScreenFile File { get; set; }
 
-        public double FileDuration { get; protected set; } = -1;
-        public double CueDuration { get; protected set; } = 0;
+        CueFile IRunnableVisualCue.File => File;
+        public event EventHandler? PlaybackEnded;
+        public double Duration { get; protected set; } = -1;
         public double RawCuePosition { get; protected set; } = 0;
 
-        public double intendedFadeOutStartTime { get; protected set; } = 0;
+        public double intendedFadeOutStartTime { get; protected set; } = double.MaxValue;
 
         public double? NextCueStartTime { get; set; } = null;
-        private bool loop;
 
-        private EndAction cueEndAction;
+        public bool IsInBackground { get; set; } = false;
 
-        private bool useCueTimeForFadeOut = false;
-
-
-        public BaseMediaElement(ScreenFile file, double cueDuration, EndAction cueEndAction)
+        public double NextCueFadeInTimeStamp { get; set; } = 0;
+        public double NextCueFadeInDuration { get; set; } = 0;
+        public BaseMediaElement(ScreenFile file)
         {
             LoadedBehavior = MediaState.Manual;
             UnloadedBehavior = MediaState.Manual;
@@ -54,32 +55,30 @@ namespace DeLight.Utilities.VideoOutput
             }
             Opacity = 0;
             MediaOpened += (s, e) => tcs.SetResult(true);
-
-            loop = file.EndAction == EndAction.Loop;
-            CueDuration = cueDuration;
-            this.cueEndAction = cueEndAction;
+            MediaEnded += (s, e) => PlaybackEnded?.Invoke(s, e);
         }
 
-        private double GetIntendedFadeoutStartTime()
+        public void FadeBeforeEnd(Action<int> a)
         {
-            intendedFadeOutStartTime = double.MaxValue;
-            useCueTimeForFadeOut = false;
-            if(CueDuration == 0)
-            {
-                if(File.EndAction == EndAction.FadeAfterEnd)
-                {
-                    intendedFadeOutStartTime = FileDuration;
-                }
-                else if(File.EndAction == EndAction.FadeBeforeEnd)
-                {
-                    intendedFadeOutStartTime = FileDuration - File.FadeOutDuration;
-                }
-            }
-            else
-            {
-                if()
-            }
+            intendedFadeOutStartTime = Duration - File.FadeOutDuration;
+            a += (int i) => SendTimeUpdate(i);
         }
+
+        public void FadeAfterEnd()
+        {
+            intendedFadeOutStartTime = Duration;
+            MediaEnded += (s, e) => FadeOut(Position.TotalSeconds);
+        }
+
+        public void SendToBackground(double end, Action<int> timer)
+        {
+            IsInBackground = true;
+            NextCueFadeInTimeStamp = Position.TotalSeconds;
+            NextCueFadeInDuration = end;
+            timer += (int i) => SendTimeUpdate(i);
+        }
+
+
         #region Interface Methods
         public void ClearCurrentAnimations()
         {
@@ -96,12 +95,10 @@ namespace DeLight.Utilities.VideoOutput
             Stop();
 
             await tcs.Task;
-            if(FileDuration == -1)
-                FileDuration = NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : -1;
-            if (FileDuration == -1)
+            if (Duration == -1)
+                Duration = NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : -1;
+            if (Duration == -1)
                 throw new NullReferenceException("Attempted to load a file with a null duration.");
-
-            intendedFadeOutStartTime = GetIntendedFadeoutStartTime();
         }
 
         public virtual void Restart() { }
@@ -122,14 +119,23 @@ namespace DeLight.Utilities.VideoOutput
             ClearCurrentAnimations();
             Play();
             IsFadingOut = true;
-            DoubleAnimation fadeOut = new(0, TimeSpan.FromSeconds(File.FadeOutDuration - (startTime - (double)(fadeOutStartTime ?? startTime))));
+            DoubleAnimation fadeOut = new(0, TimeSpan.FromSeconds(File.FadeOutDuration - (startTime - intendedFadeOutStartTime)));
             BeginAnimation(fadeOut);
 
         }
 
-        public virtual void SendTimeUpdate(double rawCueTime)
+        public virtual void SendTimeUpdate(double time)
         {
-            
+
+            FetchOpacity(time);
+            if(Opacity == 0)
+            {
+                Pause();
+            }
+            else if (!IsFadingOut && time > intendedFadeOutStartTime)
+            {
+                FadeOut(time);
+            }
         }
 
         //Only plays hte video. not from start, no seeking, just plays.
@@ -159,14 +165,13 @@ namespace DeLight.Utilities.VideoOutput
 
         #region Event Handlers for Video End Actions
 
-
-
         public void OnFadedOut(object? s, EventArgs e)
         {
             Pause();
             IsFadingOut = false;
             storyboards.Clear();
         }
+
         #endregion
 
         #region Protected Methods
@@ -182,48 +187,31 @@ namespace DeLight.Utilities.VideoOutput
 
         protected void FetchOpacity(double time)
         {
-            Duration ??= NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : null;
-            if (Duration == null)
+            if (Duration == -1)
+                Duration = NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : -1;
+            if (Duration == -1)
                 throw new NullReferenceException("Attempted to fetch opacity on a file with null duration.");
 
             double opacity;
-            if (IsInBackground)
-                time = NextCueFadeInTimeStamp + time;
-            if (IsInBackground && time > NextCueFadeInTimeStamp + NextCueFadeInDuration)
+
+
+            if (IsInBackground && time + NextCueFadeInTimeStamp > NextCueFadeInTimeStamp + NextCueFadeInDuration)//if the video is in the background and the next video has finished fading in
             {
                 opacity = 0;
             }
-            else if (time < File.FadeInDuration)
+            else if (time < File.FadeInDuration)//if the video is still fading in
                 opacity = time / File.FadeInDuration;
-            else if (File.EndAction == EndAction.FadeAfterEnd)
-            {
-                if (time < Duration)
-                    opacity = 1;
-                else
-                {
-                    if (File.FadeOutDuration == 0)
-                        opacity = 0;
-                    else
-                        opacity = 1 - (time - (double)Duration) / File.FadeOutDuration;
-                }
-            }
-            else if (File.EndAction == EndAction.FadeBeforeEnd)
-            {
-                if (time >= Duration - File.FadeOutDuration)
-                {
-                    if (File.FadeOutDuration == 0)
-                        opacity = 0;
-                    else
-                        opacity = 1 - ((double)Duration - time) / File.FadeOutDuration;
-                }
-                else
-                    opacity = 1;
-            }
+            else if (time > intendedFadeOutStartTime)//if the video is fading out
+                opacity = 1 - (time - intendedFadeOutStartTime) / File.FadeOutDuration;
             else
-                opacity = 1;
+                opacity = 1;//if the video is not fading in or out
             Opacity = Math.Clamp(opacity, 0, 1);
         }
 
+        protected void TriggerPlaybackEnded()
+        {
+            PlaybackEnded?.Invoke(this, EventArgs.Empty);
+        }
         #endregion
     }
 }
