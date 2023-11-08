@@ -10,6 +10,9 @@ using System.Collections.ObjectModel;
 using DeLight.Models;
 using DeLight.Utilities.VideoOutput;
 using System.Threading.Tasks;
+using System.IO;
+using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 
 namespace DeLight.ViewModels
 {
@@ -21,7 +24,7 @@ namespace DeLight.ViewModels
 
         private Screen? selectedScreen;
 
-        private readonly ShowRunner showRunner;
+        private ShowRunner showRunner;
 
         #region Font Size Properties
         [ObservableProperty]
@@ -65,6 +68,7 @@ namespace DeLight.ViewModels
 
         [ObservableProperty]
         public CueListCueViewModel? selectedCue;
+        public string WindowTitle => "DeLight" + ((showRunner?.Show?.Name ?? "") == "" ? "" : " - " + showRunner!.Show.Name);
 
         public MainWindowViewModel(ShowRunner runner)
         {
@@ -74,8 +78,32 @@ namespace DeLight.ViewModels
             Cues = new();
             showRunner.OnLoaded += ShowRunner_OnLoaded;
             showRunner.PrepareCues();
+            GlobalSettings.Instance.LastShowPath = showRunner.Show.Path;
         }
-
+        public void LoadShow(string filepath)
+        {
+            showRunner.Stop();
+            SaveShow();
+            showRunner = new(Show.Load(filepath));
+            showRunner.OnLoaded += ShowRunner_OnLoaded;
+            showRunner.PrepareCues();
+            GlobalSettings.Instance.LastShowPath = showRunner.Show.Path;
+            OnPropertyChanged(nameof(WindowTitle));
+        }
+        public void SaveShow()
+        {
+            Show.Save(showRunner.Show);
+            GlobalSettings.Instance.LastShowPath = showRunner.Show.Path;
+        }
+        public void NewShow(string path)
+        {
+            showRunner.Stop();
+            SaveShow();
+            showRunner = new(new Show() { Path = path, Name = string.Join(".", Path.GetFileName(path).Split('.')[..1]) });
+            showRunner.OnLoaded += ShowRunner_OnLoaded;
+            showRunner.PrepareCues();
+            OnPropertyChanged(nameof(WindowTitle));
+        }
         partial void OnSelectedCueChanging(CueListCueViewModel? value)
         {
             if (SelectedCue != null)
@@ -199,6 +227,7 @@ namespace DeLight.ViewModels
 
         public void HideVideoWindow()
         {
+            SaveShow();
             showRunner.Stop();
             VideoManager.HideVideoWindow();
         }

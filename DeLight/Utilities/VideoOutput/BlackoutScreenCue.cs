@@ -7,6 +7,7 @@ using System.Windows.Media.Animation;
 using System.Windows;
 using System.Windows.Controls;
 using DeLight.Interfaces;
+using System.Windows.Data;
 
 namespace DeLight.Utilities.VideoOutput
 {
@@ -50,9 +51,12 @@ namespace DeLight.Utilities.VideoOutput
         //I don't even remember why this method is needed
         public void ClearCurrentAnimations()
         {
-            foreach (Storyboard storyboard in storyboards)
-                storyboard.Stop();
-            storyboards.Clear();
+            Dispatcher.Invoke(() =>
+            {
+                foreach (Storyboard storyboard in storyboards)
+                    storyboard.Stop();
+                storyboards.Clear();
+            });
         }
 
         public void FadeIn(double startTime = 0)
@@ -78,20 +82,26 @@ namespace DeLight.Utilities.VideoOutput
 
         public void Pause()
         {
-            foreach (Storyboard storyboard in storyboards)
-                storyboard.Pause();
+            Dispatcher.Invoke(() =>
+            {
+                foreach (Storyboard storyboard in storyboards)
+                    storyboard.Pause();
+            });
         }
 
         public void Play()
         {
-            foreach (Storyboard storyboard in storyboards)
-                storyboard.Resume();
+            Dispatcher.Invoke(() =>
+            {
+                foreach (Storyboard storyboard in storyboards)
+                    storyboard.Resume();
+            });
         }
         public void SendTimeUpdate(double time)
         {
             if (time > File.FadeInDuration)
             {
-                Opacity = 1;
+                Dispatcher.Invoke(() => Opacity = 1);
                 PlaybackEnded?.Invoke(this, EventArgs.Empty);
                 return;
             }
@@ -114,23 +124,29 @@ namespace DeLight.Utilities.VideoOutput
             }
         }
 
-        public UIElement GetUIElement() => this;
+        public FrameworkElement GetUIElement() => this;
 
-        public void SendToBackground(double newCueFadeInTime, Action<int> t) { }
+        public void SendToBackground(double newCueFadeInTime) { }
 
         public void Stop()
         {
             ClearCurrentAnimations();
-            Opacity = 1;
+            Dispatcher.Invoke(() =>
+            {
+                Opacity = 1;
+            });
         }
         private void BeginAnimation(DoubleAnimation animation)
         {
-            Storyboard.SetTarget(animation, this);
-            Storyboard.SetTargetProperty(animation, new PropertyPath(OpacityProperty));
-            Storyboard storyboard = new();
-            storyboard.Children.Add(animation);
-            storyboard.Begin();
-            storyboards.Add(storyboard);
+            Dispatcher.Invoke(() =>
+            {
+                Storyboard.SetTarget(animation, this);
+                Storyboard.SetTargetProperty(animation, new PropertyPath(OpacityProperty));
+                Storyboard storyboard = new();
+                storyboard.Children.Add(animation);
+                storyboard.Begin();
+                storyboards.Add(storyboard);
+            });
         }
 
         private void OnFadedOut(object? s, EventArgs e)
@@ -146,23 +162,15 @@ namespace DeLight.Utilities.VideoOutput
 
         private void FetchOpacity(double timeStamp)
         {
-            if (File.FadeInDuration == 0)
-            {
-                Opacity = 1;
-                return;
-            }
-
+            double opacity = 1;
             if (timeStamp < File.FadeInDuration)
             {
-                Opacity = timeStamp / File.FadeInDuration;
+                opacity = timeStamp / File.FadeInDuration;
             }
-            else
-            {
-                Opacity = 1;
-            }
+            Dispatcher.Invoke(() => Opacity = Math.Clamp(opacity, 0, 1));
         }
 
-        public void FadeBeforeEnd(Action<int> action) { }
+        public void FadeBeforeEnd() { }
 
         public void FadeAfterEnd() { }
     }

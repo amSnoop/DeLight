@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DeLight.Models;
 using System;
 using System.IO;
@@ -9,7 +10,7 @@ using System.Windows.Forms;
 
 namespace DeLight.Utilities
 {
-    public class GlobalSettings
+    public partial class GlobalSettings : ObservableObject
     {
         private static GlobalSettings? instance;
 
@@ -17,9 +18,13 @@ namespace DeLight.Utilities
         public static readonly int TickRate = 1000 / 20;// in milliseconds. this is 20 ticks per second
 
         public Cue DefaultCue { get; set; } = new();
-        public string LastShowPath { get; set; } = "";
-        public string VideoDirectory { get; set; } = "";
-        public string LightShowDirectory { get; set; } = "";
+
+        [ObservableProperty]
+        private string lastShowPath = "";
+        [ObservableProperty]
+        private string videoDirectory = "";
+        [ObservableProperty]
+        private string lightShowDirectory = "";
         public double LastVideoScreenTop { get; set; }
         public double LastVideoScreenLeft { get; set; }
         public int LastScreenTop { get; set; }

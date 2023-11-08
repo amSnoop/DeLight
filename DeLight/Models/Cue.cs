@@ -36,8 +36,10 @@ namespace DeLight.Models
         private double duration;
         [ObservableProperty]
         private EndAction cueEndAction;
-        public ScreenFile ScreenFile { get; private set; }
-        public LightFile LightFile { get; private set; }
+        [ObservableProperty]
+        private ScreenFile screenFile;
+        [ObservableProperty]
+        private LightFile lightFile;
         [ObservableProperty]
         private bool disabled;
 

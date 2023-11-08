@@ -33,11 +33,11 @@ namespace DeLight.Interfaces
     }
     //Exists only because IRunnableVisualCue is not a UIElement
     public interface IRunnableScreenCue : IRunnableVisualCue {
-        public UIElement GetUIElement();
+        public FrameworkElement GetUIElement();
 
-        public void SendToBackground(double newCueFadeInDuration, Action<int> action);
+        public void SendToBackground(double newCueFadeInDuration);
 
-        public void FadeBeforeEnd(Action<int> action);
+        public void FadeBeforeEnd();
 
         public void FadeAfterEnd();
     }

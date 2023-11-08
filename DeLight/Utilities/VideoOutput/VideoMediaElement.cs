@@ -23,8 +23,14 @@ namespace DeLight.Utilities.VideoOutput
             Position = TimeSpan.Zero;
             Play();
         }
-        public override void SeekTo(double time, bool play)
+        public override async void SeekTo(double time, bool play)
         {
+            if(!loaded)
+            {
+                bool loaded = await Task.WhenAny(tcs.Task, Task.Delay(5000)) == tcs.Task;
+                if (!loaded)
+                    throw new Exception("Video failed to load in time.");
+            }
             Pause();
             if(Duration == -1)
                 Duration = NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : -1;
@@ -55,15 +61,6 @@ namespace DeLight.Utilities.VideoOutput
                     System.Threading.Thread.Sleep(1);//This is a hack to get around a bug where the video will not seek to the correct position if it is not playing
                     Pause();
                     Volume = vol;
-                }
-        }
-        public override void SendTimeUpdate(double time)
-        {
-            if (!IsFadingOut)
-                if (time > intendedFadeOutStartTime)
-                {
-                    FetchOpacity(time);
-                    FadeOut(time);
                 }
         }
 

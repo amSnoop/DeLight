@@ -29,7 +29,7 @@ namespace DeLight.Views
         {
             e.Handled = true;
         }
-        //returns false if a video file cannot be played or is not found, but there is a string provided in the path.
+        
 
         public void Stop()
         {

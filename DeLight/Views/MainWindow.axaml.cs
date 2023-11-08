@@ -8,6 +8,9 @@ using Avalonia.Interactivity;
 using static DeLight.ViewModels.CueListContextMenuButtonClickedEventArgs;
 using System.Linq;
 using DeLight.Utilities.VideoOutput;
+using Avalonia.Platform.Storage;
+using System.IO;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DeLight.Views
 {
@@ -50,7 +53,7 @@ namespace DeLight.Views
         {
             if (DataContext is MainWindowViewModel vm)
             {
-                var cueEditorViewModel = new CueEditorViewModel(new() { Number = vm.Cues.Last().Cue?.Number + 1 ?? 0 });
+                var cueEditorViewModel = new CueEditorViewModel(new() { Number = vm.Cues.LastOrDefault()?.Cue?.Number + 1 ?? 0 });
                 CueEditorWindow.DataContext = cueEditorViewModel;
                 vm.InsertCue(cueEditorViewModel.Cue);
             }
@@ -72,10 +75,11 @@ namespace DeLight.Views
                 }
             }
         }
-        public void CueList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        public async void CueList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
-            var cueEditorViewModel = new CueEditorViewModel((CueList.SelectedItem as CueListCueViewModel)?.Cue ?? new());
+            var cueEditorViewModel = new CueEditorViewModel((CueList.SelectedItem as CueListCueViewModel)?.Cue);
             CueEditorWindow.DataContext = cueEditorViewModel;
+            await VideoManager.PrepareCue(cueEditorViewModel.Cue);
             Focus();
         }
 
@@ -127,7 +131,7 @@ namespace DeLight.Views
                 }
                 e.Handled = true;
             }
-            else if (e.Key == Avalonia.Input.Key.Space && DataContext is MainWindowViewModel vm && Keyboard.FocusedElement is not TextBox)
+            else if (e.Key == Avalonia.Input.Key.Space && DataContext is MainWindowViewModel vm && FocusManager!.GetFocusedElement() is not TextBox)
             {
                 await vm.PlayCue();
                 e.Handled = true;
@@ -162,7 +166,7 @@ namespace DeLight.Views
 
         private void Slider_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
-            if(DataContext is MainWindowViewModel vm && vm.CuePlaybackViewModel != null)
+            if (DataContext is MainWindowViewModel vm && vm.CuePlaybackViewModel != null)
                 vm.CuePlaybackViewModel.IsSeeking = true;
         }
 
@@ -170,6 +174,46 @@ namespace DeLight.Views
         {
             if (DataContext is MainWindowViewModel vm && vm.CuePlaybackViewModel != null)
                 vm.CuePlaybackViewModel.IsSeeking = false;
+        }
+
+        private void Save_Button_Clicked(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel vm)
+                vm.SaveShow();
+        }
+        private async void Load_Button_Clicked(object? sender, RoutedEventArgs e)
+        {
+            var topLevel = GetTopLevel(this);
+
+            // Start async operation to open the dialog.
+            var files = await topLevel!.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Open DeLight File",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("DeLight Shows") { Patterns = new[] {"*.dlt" } }
+                },
+                SuggestedStartLocation = await topLevel.StorageProvider.TryGetFolderFromPathAsync(Path.GetDirectoryName(GlobalSettings.Instance.LastShowPath))
+            });
+
+            if (files.Count >= 1 && files[0].TryGetLocalPath() is not null)
+            {
+                ((MainWindowViewModel)DataContext!).LoadShow(files[0].TryGetLocalPath()!);
+            }
+        }
+        private async void New_Button_Clicked(object? sender, RoutedEventArgs e)
+        {
+            var topLevel = GetTopLevel(this);
+
+            var save = await topLevel!.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = "Save DeLight File",
+                SuggestedFileName = "New Show.dlt",
+                SuggestedStartLocation = await topLevel.StorageProvider.TryGetFolderFromPathAsync(Path.GetDirectoryName(GlobalSettings.Instance.LastShowPath)),
+            });
+            if (save is not null && save.TryGetLocalPath() is not null)
+                ((MainWindowViewModel)DataContext!).NewShow(save.TryGetLocalPath()!);
         }
     }
 }

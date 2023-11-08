@@ -46,19 +46,37 @@ namespace DeLight.Models
         public static Show Load(string filepath)
         {
             Show? show = null;
-            if (!File.Exists(filepath) || !filepath.EndsWith("json"))
+            if (!File.Exists(filepath) || !filepath.EndsWith("dlt"))
                 Console.WriteLine("Could not find show at " + filepath);
             else
-                show = JsonSerializer.Deserialize<Show>(filepath);
-
-            if (show == null)
-                Console.WriteLine("Could not load show from " + filepath);
+            {
+                try
+                {
+                    show = JsonSerializer.Deserialize<Show>(File.ReadAllText(filepath));
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error loading show from " + filepath + ": " + e.Message);
+                }
+            }
             return show ?? LoadTestShow();
         }
         public static void Save(Show show, string? filepath = null)
         {
-            string json = JsonSerializer.Serialize(show);
-            File.WriteAllText(filepath ?? show.Path, json);
+            filepath ??= show.Path;
+            if(!filepath.EndsWith("dlt"))
+            {
+                filepath += ".dlt";
+            }
+            if (Directory.Exists(System.IO.Path.GetDirectoryName(filepath)))
+            {
+                string json = JsonSerializer.Serialize(show);
+                File.WriteAllText(filepath, json);
+            }
+            else
+            {
+                Console.WriteLine("Could not save show. Directory " + System.IO.Path.GetDirectoryName(filepath) + " does not exist.");
+            }
         }
 
         public static Show LoadTestShow()

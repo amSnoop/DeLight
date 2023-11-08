@@ -28,7 +28,6 @@ namespace DeLight
                 GlobalSettings.Load();
                 ShowRunner show = new(Show.Load(GlobalSettings.Instance.LastShowPath));
                 LightingController.Start();
-                VideoManager.Startup();
                 desktop.MainWindow = new MainWindow() 
                 {
                     DataContext = new MainWindowViewModel(show)

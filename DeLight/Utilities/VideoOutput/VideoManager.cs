@@ -9,46 +9,49 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace DeLight.Utilities.VideoOutput
 {
     public static class VideoManager
 
     {
-        private static VideoWindow? VideoWindow = null;
+        private static VideoWindow? VideoWindow;
 
-        public static event Action<int>? VideoTimerTicked;
+        public static event Action<double>? VideoTimerTicked;
 
-        private static List<BaseMediaElement> MediaElements => VideoWindow?.Container.Children.OfType<BaseMediaElement>().ToList() ?? new();
+        private static List<BaseMediaElement> MediaElements => VideoWindow?.Container?.Children?.OfType<BaseMediaElement>()?.ToList() ?? new();
 
-        private static IRunnableScreenCue? currentCue = null;
+        private static IRunnableScreenCue? currentCue;
 
-        private static IRunnableScreenCue? prevCue = null;
+        private static IRunnableScreenCue? prevCue;
 
-        private static Timer? timer = null;
+        private static IRunnableScreenCue? preppedCue;
 
-        private static int elapsedTicks = 0;
-        private static double elapsedSeconds => elapsedTicks / (GlobalSettings.TickRate * 1.0);
+        private static readonly System.Timers.Timer? timer;
+
+        private static double ElapsedSeconds;
+
+        private static DateTime lastTick;
 
         private static double actionTime = double.MaxValue;
 
-        private static BlackoutScreenCue curtain = new(new());
+        private static readonly BlackoutScreenCue curtain = new(new());
 
         private static bool fadingOut;
-
-        public static async Task Startup()
+        private static TaskCompletionSource<bool> tcs = new();
+        static VideoManager()
         {
             if (!Design.IsDesignMode)//weird ass thing where each of these dont work in the other mode.
                 VideoWindow = new VideoWindow();
             else
             {
-                await Dispatcher.UIThread.InvokeAsync(() =>
+                Task.Run(() =>
+                Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     VideoWindow = new VideoWindow();
-                });
+                }));
             }
-            timer = new Timer(GlobalSettings.TickRate);
+            timer = new(GlobalSettings.TickRate);
             timer.Elapsed += Timer_Elapsed;
             VideoWindow?.Container.Children.Add(curtain.GetUIElement());
             System.Windows.Controls.Panel.SetZIndex(curtain.GetUIElement(), 1);
@@ -56,8 +59,10 @@ namespace DeLight.Utilities.VideoOutput
 
         private static void Timer_Elapsed(object? sender, ElapsedEventArgs e)
         {
-            elapsedTicks++;
-            VideoTimerTicked?.Invoke(elapsedTicks);
+            ElapsedSeconds += (DateTime.Now - lastTick).TotalSeconds;
+            VideoTimerTicked?.Invoke(ElapsedSeconds);
+            Console.WriteLine(ElapsedSeconds);
+            lastTick = DateTime.Now;
         }
 
         public static void Stop(bool hide = false)
@@ -72,13 +77,15 @@ namespace DeLight.Utilities.VideoOutput
             if (hide)
                 VideoWindow?.Hide();
         }
-        public static async Task UpdateCue(Cue? c)
+
+        public static async Task PrepareCue(Cue? c)
         {
-            ShowVideoWindow();
-            if (prevCue != null) RemoveCue(prevCue);
-            prevCue = currentCue;
-            if (prevCue != null)
-                prevCue?.SendToBackground(c?.ScreenFile.FadeInDuration ?? prevCue.File.FadeOutDuration, VideoTimerTicked!);
+            tcs = new();
+            if (preppedCue != null)
+            {
+                RemoveCue(preppedCue);
+                preppedCue = null;
+            }
             IRunnableScreenCue? rsc;
             if (c is null)
             {
@@ -92,6 +99,7 @@ namespace DeLight.Utilities.VideoOutput
             {
                 rsc = new BlackoutScreenCue(new BlackoutScreenFile() { FadeInDuration = c.ScreenFile.FadeInDuration });
             }
+#pragma warning disable IDE0045 // Convert to conditional expression
             else if (c.ScreenFile is VideoFile vf)
             {
                 rsc = new VideoMediaElement(vf);
@@ -104,20 +112,37 @@ namespace DeLight.Utilities.VideoOutput
             {
                 rsc = new BlackoutScreenCue(new());
             }
-            currentCue = rsc;
-            if(currentCue is not null)
-                PrepareEndingListeners(c!);
-            elapsedTicks = 0;
-            fadingOut = false;
+#pragma warning restore IDE0045 // Convert to conditional expression
+            preppedCue = rsc;
             await curtain.LoadAsync();
-            if (currentCue is not null)
+            if (preppedCue is not null)
             {
-                await currentCue.LoadAsync();
-                VideoWindow?.Container.Children.Add(currentCue.GetUIElement());
+                await preppedCue.LoadAsync();
+                var e = preppedCue.GetUIElement();
+                Console.WriteLine(e.Parent);
+                MediaElements.ForEach(x => Console.WriteLine(x + x.Name));
+                VideoWindow?.Container.Children.Add(e);
             }
+            tcs.SetResult(true);
+        }
+        public static async Task UpdateCue(Cue? c)
+        {
+            await tcs.Task;
+            ShowVideoWindow();
+            if (prevCue != null) RemoveCue(prevCue);
+            prevCue = currentCue;
+            if (prevCue != null)
+                prevCue?.SendToBackground(c?.ScreenFile.FadeInDuration ?? prevCue.File.FadeOutDuration);
+            currentCue = preppedCue;
+            if (currentCue is not null)
+                PrepareEndingListeners(c!);
+            ElapsedSeconds = 0;
+            lastTick = DateTime.Now;
+            fadingOut = false;
             curtain.Opacity = 0;
             timer!.Start();
             currentCue?.SeekTo(0, true);
+            preppedCue = null;
             return;
         }
         //curentCue will never be null, put attribute here
@@ -156,7 +181,7 @@ namespace DeLight.Utilities.VideoOutput
             }
             else if (ea == EndAction.FadeBeforeEnd)
             {
-                currentCue!.FadeBeforeEnd(VideoTimerTicked!);
+                currentCue!.FadeBeforeEnd();
             }
         }
         private static void SetUpCueWatchers(Cue c)
@@ -186,12 +211,12 @@ namespace DeLight.Utilities.VideoOutput
         }
         private static void FadeEndWatch()
         {
-            if (elapsedSeconds > actionTime)
+            if (ElapsedSeconds > actionTime)
             {
                 if (!fadingOut)
                 {
                     curtain.FadedIn += (s, e) => Pause();
-                    curtain.FadeIn(elapsedSeconds - actionTime);
+                    curtain.FadeIn(ElapsedSeconds - actionTime);
                     fadingOut = true;
                 }
             }
@@ -235,7 +260,7 @@ namespace DeLight.Utilities.VideoOutput
         public static void SeekTo(double time, bool play)
         {
             ShowVideoWindow();
-            elapsedTicks = (int)Math.Round(time * GlobalSettings.TickRate);
+            ElapsedSeconds = time;
             FetchBGOpacity();
             if (curtain.Opacity == 1)
                 Pause();
@@ -248,6 +273,7 @@ namespace DeLight.Utilities.VideoOutput
         }
         public static void HideVideoWindow()
         {
+            Stop();
             VideoWindow?.Hide();
         }
         public static void SetVideoScreen(System.Windows.Forms.Screen screen)
@@ -257,12 +283,14 @@ namespace DeLight.Utilities.VideoOutput
         }
         public static void FetchBGOpacity()
         {
-            if (elapsedSeconds < actionTime)
+#pragma warning disable IDE0045 // Convert to conditional expression
+            if (ElapsedSeconds < actionTime)
                 curtain.Opacity = 0;
-            else if (elapsedSeconds > actionTime && elapsedSeconds < actionTime + curtain.File.FadeInDuration)
-                curtain.Opacity = (elapsedSeconds - actionTime) / curtain.File.FadeInDuration;
+            else if (ElapsedSeconds > actionTime && ElapsedSeconds < actionTime + curtain.File.FadeInDuration)
+                curtain.Opacity = (ElapsedSeconds - actionTime) / curtain.File.FadeInDuration;
             else
                 curtain.Opacity = 1;
+#pragma warning restore IDE0045 // Convert to conditional expression
         }
     }
 }

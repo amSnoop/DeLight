@@ -18,7 +18,7 @@ namespace DeLight.Utilities.VideoOutput
 {
     public class BaseMediaElement : MediaElement, IRunnableScreenCue
     {
-        private readonly TaskCompletionSource<bool> tcs = new();
+        protected readonly TaskCompletionSource<bool> tcs = new();
         private readonly List<Storyboard> storyboards = new();
         public bool IsFadingOut { get; protected set; } = false; //Used to prevent the fade out from being called multiple times
 
@@ -38,6 +38,7 @@ namespace DeLight.Utilities.VideoOutput
 
         public double NextCueFadeInTimeStamp { get; set; } = 0;
         public double NextCueFadeInDuration { get; set; } = 0;
+        protected bool loaded = false;
         public BaseMediaElement(ScreenFile file)
         {
             LoadedBehavior = MediaState.Manual;
@@ -58,10 +59,10 @@ namespace DeLight.Utilities.VideoOutput
             MediaEnded += (s, e) => PlaybackEnded?.Invoke(s, e);
         }
 
-        public void FadeBeforeEnd(Action<int> a)
+        public void FadeBeforeEnd()
         {
             intendedFadeOutStartTime = Duration - File.FadeOutDuration;
-            a += (int i) => SendTimeUpdate(i);
+            VideoManager.VideoTimerTicked += SendTimeUpdate;
         }
 
         public void FadeAfterEnd()
@@ -70,12 +71,12 @@ namespace DeLight.Utilities.VideoOutput
             MediaEnded += (s, e) => FadeOut(Position.TotalSeconds);
         }
 
-        public void SendToBackground(double end, Action<int> timer)
+        public void SendToBackground(double end)
         {
             IsInBackground = true;
             NextCueFadeInTimeStamp = Position.TotalSeconds;
             NextCueFadeInDuration = end;
-            timer += (int i) => SendTimeUpdate(i);
+            VideoManager.VideoTimerTicked += SendTimeUpdate;
         }
 
 
@@ -87,10 +88,12 @@ namespace DeLight.Utilities.VideoOutput
             storyboards.Clear();
         }
 
-        public UIElement GetUIElement() => this;
+        public FrameworkElement GetUIElement() => this;
 
         public async Task LoadAsync()
         {
+            var vol = Volume;
+            Volume = 0;
             Play();
             Stop();
 
@@ -99,6 +102,8 @@ namespace DeLight.Utilities.VideoOutput
                 Duration = NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : -1;
             if (Duration == -1)
                 throw new NullReferenceException("Attempted to load a file with a null duration.");
+            Volume = vol;
+            loaded = true;
         }
 
         public virtual void Restart() { }
@@ -127,8 +132,7 @@ namespace DeLight.Utilities.VideoOutput
         public virtual void SendTimeUpdate(double time)
         {
 
-            FetchOpacity(time);
-            if(Opacity == 0)
+            if(FetchOpacity(time) == 0)
             {
                 Pause();
             }
@@ -143,13 +147,13 @@ namespace DeLight.Utilities.VideoOutput
         {
             foreach (Storyboard storyboard in storyboards)
                 storyboard.Resume();
-            base.Play();
+            Dispatcher.Invoke(base.Play);
         }
         public new virtual void Pause()
         {
             foreach (Storyboard storyboard in storyboards)
                 storyboard.Pause();
-            base.Pause();
+            Dispatcher.Invoke(base.Pause);
         }
 
         //does whatever the base stop does ig
@@ -158,7 +162,7 @@ namespace DeLight.Utilities.VideoOutput
             foreach (Storyboard storyboard in storyboards)
                 storyboard.Stop();
             storyboards.Clear();
-            base.Stop();
+            Dispatcher.Invoke(base.Stop);
         }
 
         #endregion
@@ -185,7 +189,7 @@ namespace DeLight.Utilities.VideoOutput
             storyboards.Add(storyboard);
         }
 
-        protected void FetchOpacity(double time)
+        protected double FetchOpacity(double time)
         {
             if (Duration == -1)
                 Duration = NaturalDuration.HasTimeSpan ? NaturalDuration.TimeSpan.TotalSeconds : -1;
@@ -205,7 +209,8 @@ namespace DeLight.Utilities.VideoOutput
                 opacity = 1 - (time - intendedFadeOutStartTime) / File.FadeOutDuration;
             else
                 opacity = 1;//if the video is not fading in or out
-            Opacity = Math.Clamp(opacity, 0, 1);
+            Dispatcher.Invoke(() => Opacity = Math.Clamp(opacity, 0, 1));
+            return opacity;
         }
 
         protected void TriggerPlaybackEnded()

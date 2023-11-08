@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Runtime.ConstrainedExecution;
 
 namespace DeLight.ViewModels
 {
@@ -20,7 +21,7 @@ namespace DeLight.ViewModels
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(Visible))]
-        private Cue cue;
+        private Cue? cue;
 
         [ObservableProperty]
         private double duration;
@@ -35,14 +36,21 @@ namespace DeLight.ViewModels
         [ObservableProperty]
         private int volume;
         [ObservableProperty]
-        private LightFileViewModel lightFile;
+        private LightFileViewModel? lightFile;
         [ObservableProperty]
-        private ScreenFileViewModel screenFile;
+        private ScreenFileViewModel? screenFile;
 
         [ObservableProperty]
         private ObservableCollection<CueFileViewModel> cues = new();
-        public CueEditorViewModel(Cue cue)
+        public CueEditorViewModel(Cue? cue)
         {
+            if (cue is null)
+            {
+                this.cue = cue;
+                durationString = "";
+
+                return;
+            }
             this.cue = cue;
             number = cue.Number;
             durationString = cue.Duration.ToString();
@@ -60,9 +68,9 @@ namespace DeLight.ViewModels
         private void OnFileTypeChanged(CueFile f)
         {
             if (f is LightFile lf)
-                Cue.SetLightFile(lf);
+                Cue?.SetLightFile(lf);
             else
-                Cue.SetScreenFile((ScreenFile)f);
+                Cue?.SetScreenFile((ScreenFile)f);
         }
         public bool Validate(string propName, object value)
         {
@@ -90,18 +98,19 @@ namespace DeLight.ViewModels
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
-            switch (e.PropertyName)
-            {
-                case nameof(Number):
-                    Cue.Number = Number;
-                    break;
-                case nameof(Duration):
-                    Cue.Duration = Duration;
-                    break;
-                case nameof(Volume):
-                    Cue.Volume = Math.Clamp(Volume / 100.0, 0, 1);
-                    break;
-            }
+            if (Cue is not null)
+                switch (e.PropertyName)
+                {
+                    case nameof(Number):
+                        Cue.Number = Number;
+                        break;
+                    case nameof(Duration):
+                        Cue.Duration = Duration;
+                        break;
+                    case nameof(Volume):
+                        Cue.Volume = Math.Clamp(Volume / 100.0, 0, 1);
+                        break;
+                }
         }
     }
 }

@@ -7,8 +7,9 @@
         mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
         x:Class="DeLight.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
+		xmlns:utils="clr-namespace:DeLight.Utilities"
         Icon="/Assets/avalonia-logo.ico"
-        Title="DeLight"
+        Title="{Binding WindowTitle}"
         Height="720"
         Width="1080"
         MinHeight="720"
@@ -36,8 +37,6 @@
 		</Grid.ColumnDefinitions>
 
 		<!--Cue Editing Window-->
-
-		<!--Previewer / Cue Settings window-->
 		<Border Grid.Row="0" Grid.Column="3" Margin="0,20" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 			<Grid RowDefinitions="Auto,*">
 				<TextBlock Classes="Title" >Cue Editor</TextBlock>
@@ -198,8 +197,8 @@
 		<Grid Grid.Column="1" Margin="0,20">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto" />
-				<RowDefinition Height="*" MinHeight="140"/>
-				<RowDefinition Height="2*" />
+				<RowDefinition Height="2*" MinHeight="140"/>
+				<RowDefinition Height="*" />
 				<RowDefinition Height="Auto" />
 				<RowDefinition Height="*" MinHeight="220"/>
 			</Grid.RowDefinitions>
@@ -226,7 +225,9 @@
 
 
 				<TextBlock Grid.Row="2" Text="Audio Device:" VerticalAlignment="Center" IsEnabled="False"/>
-				<ComboBox Focusable="False" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" IsEnabled="False" />
+				<ComboBox Focusable="False" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" IsEnabled="False" SelectedIndex="0">
+					<ComboBoxItem Content="Not Implemented"/>	
+				</ComboBox>
 
 
 				<TextBlock Grid.Row="3" Text="Show Path:" VerticalAlignment="Center"/>
@@ -262,7 +263,11 @@
 				</Grid>
 			</Grid>
 
-
+			<Grid Grid.Row="2" ColumnDefinitions="*,Auto,*,Auto,*,Auto,*">
+				<Button Focusable="False" Grid.Column="1" Content="Save" Margin="5,5,5,5" Grid.Row="1" Click="Save_Button_Clicked"/>
+				<Button Focusable="False" Grid.Column="3" Content="Load" Margin="5,5,5,5" Grid.Row="1" Click="Load_Button_Clicked"/>
+				<Button Focusable="False" Grid.Column="5" Content="New" Margin="5,5,5,5" Grid.Row="1" Click="New_Button_Clicked"/>
+			</Grid>
 			<Border Grid.Row="3">
 				<TextBlock Text="Controls" Classes="Title"  TextWrapping="WrapWithOverflow"/>
 			</Border>
