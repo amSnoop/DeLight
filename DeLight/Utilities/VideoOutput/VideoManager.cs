@@ -27,7 +27,7 @@ namespace DeLight.Utilities.VideoOutput
 
         private static IRunnableScreenCue? preppedCue;
 
-        private static readonly System.Timers.Timer? timer;
+        private static readonly Timer? timer;
 
         private static double ElapsedSeconds;
 
@@ -39,6 +39,8 @@ namespace DeLight.Utilities.VideoOutput
 
         private static bool fadingOut;
         private static TaskCompletionSource<bool> tcs = new();
+
+        private static double duration;
         static VideoManager()
         {
             if (!Design.IsDesignMode)//weird ass thing where each of these dont work in the other mode.
@@ -61,12 +63,13 @@ namespace DeLight.Utilities.VideoOutput
         {
             ElapsedSeconds += (DateTime.Now - lastTick).TotalSeconds;
             VideoTimerTicked?.Invoke(ElapsedSeconds);
-            Console.WriteLine(ElapsedSeconds);
             lastTick = DateTime.Now;
+            Messenger.SendCueTick(null, new(ElapsedSeconds, duration));
         }
 
         public static void Stop(bool hide = false)
         {
+            timer?.Stop();
             currentCue = null;
             prevCue = null;
             foreach (var element in MediaElements)
@@ -103,6 +106,12 @@ namespace DeLight.Utilities.VideoOutput
             else if (c.ScreenFile is VideoFile vf)
             {
                 rsc = new VideoMediaElement(vf);
+                ((VideoMediaElement)rsc).Volume = c.Volume;
+                c.PropertyChanged += (s, e) =>
+                {
+                    if (e.PropertyName == nameof(Cue.Volume))
+                        ((VideoMediaElement)rsc).SetCueVolume(c.Volume);
+                };
             }
             else if (c.ScreenFile is ImageFile imgf)
             {
@@ -112,16 +121,13 @@ namespace DeLight.Utilities.VideoOutput
             {
                 rsc = new BlackoutScreenCue(new());
             }
-#pragma warning restore IDE0045 // Convert to conditional expression
             preppedCue = rsc;
+#pragma warning restore IDE0045 // Convert to conditional expression
             await curtain.LoadAsync();
             if (preppedCue is not null)
             {
                 await preppedCue.LoadAsync();
-                var e = preppedCue.GetUIElement();
-                Console.WriteLine(e.Parent);
-                MediaElements.ForEach(x => Console.WriteLine(x + x.Name));
-                VideoWindow?.Container.Children.Add(e);
+                VideoWindow?.Container.Children.Add(preppedCue.GetUIElement());
             }
             tcs.SetResult(true);
         }
@@ -142,8 +148,20 @@ namespace DeLight.Utilities.VideoOutput
             curtain.Opacity = 0;
             timer!.Start();
             currentCue?.SeekTo(0, true);
+            FetchDuration(c);
             preppedCue = null;
             return;
+        }
+
+        //TODO: this really needs to move tf out of here and into a class that is more generic to lights and video
+        private static void FetchDuration(Cue? c)
+        {
+            if (c == null)
+                duration = 0;
+            else if (c.Duration == 0)
+                duration = currentCue?.Duration ?? 0;
+            else
+                 duration = c.Duration;
         }
         //curentCue will never be null, put attribute here
         private static void PrepareEndingListeners(Cue c)
@@ -225,9 +243,9 @@ namespace DeLight.Utilities.VideoOutput
         {
             currentCue?.Pause();
         }
-        private static void LoopWatch(Cue c)
+        private static async void LoopWatch(Cue c)
         {
-            UpdateCue(c);
+            await UpdateCue(c);
         }
 
 
@@ -264,8 +282,11 @@ namespace DeLight.Utilities.VideoOutput
             FetchBGOpacity();
             if (curtain.Opacity == 1)
                 Pause();
-            prevCue?.SeekTo(time, play);
-            currentCue?.SeekTo(time, play);
+            else
+            {
+                prevCue?.SeekTo(time, play);
+                currentCue?.SeekTo(time, play);
+            }
         }
         public static void ShowVideoWindow()
         {

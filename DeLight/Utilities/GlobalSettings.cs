@@ -30,7 +30,8 @@ namespace DeLight.Utilities
         public int LastScreenTop { get; set; }
         public int LastScreenLeft { get; set; }
 
-        public double MasterVolume { get; set; } = 1;
+        [ObservableProperty]
+        private double masterVolume = 1;
 
         public WindowState WindowState { get; set; } = WindowState.Normal;
 
@@ -40,11 +41,7 @@ namespace DeLight.Utilities
 
         public GlobalSettings()
         {
-            Messenger.VolumeChanged += (source, volume, cue) =>
-            {
-                if (source == VolumeSource.Master)
-                    MasterVolume = volume;
-            };
+
         }
 
         public static void Load()

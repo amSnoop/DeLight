@@ -81,7 +81,7 @@ namespace DeLight.Models
 
         public static Show LoadTestShow()
         {
-            Show show = new("Test Show", "testshow.json", new List<Cue>());
+            Show show = new("Test Show", "C:\\Users\\Snoopy\\DeLight Shows\\testshow.dlt", new List<Cue>());
             show.Cues.Add(new Cue("C:\\Users\\Snoopy\\Videos\\Halo  The Master Chief Collection\\cutscene example.mp4")
             {
                 Number = 1,

@@ -1,15 +1,8 @@
-﻿using Avalonia.Animation;
-using DeLight.Interfaces;
-using DeLight.Models;
+﻿using DeLight.Interfaces;
 using DeLight.Models.Files;
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Transactions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
@@ -124,7 +117,7 @@ namespace DeLight.Utilities.VideoOutput
             ClearCurrentAnimations();
             Play();
             IsFadingOut = true;
-            DoubleAnimation fadeOut = new(0, TimeSpan.FromSeconds(File.FadeOutDuration - (startTime - intendedFadeOutStartTime)));
+            DoubleAnimation fadeOut = new(0, TimeSpan.FromSeconds(Math.Max(0, File.FadeOutDuration - (startTime - intendedFadeOutStartTime))));
             BeginAnimation(fadeOut);
 
         }

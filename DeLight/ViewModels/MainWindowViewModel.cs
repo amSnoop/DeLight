@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.IO;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace DeLight.ViewModels
 {
@@ -210,6 +211,8 @@ namespace DeLight.ViewModels
         }
         public void StopCue()
         {
+            foreach (var cue in Cues)
+                cue.Active = false;
             showRunner.Stop();
         }
         public void PauseCue()
@@ -228,6 +231,8 @@ namespace DeLight.ViewModels
         public void HideVideoWindow()
         {
             SaveShow();
+            foreach (var cue in Cues)
+                cue.Active = false;
             showRunner.Stop();
             VideoManager.HideVideoWindow();
         }

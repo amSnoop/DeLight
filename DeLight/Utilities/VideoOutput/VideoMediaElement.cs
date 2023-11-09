@@ -8,14 +8,20 @@ namespace DeLight.Utilities.VideoOutput
     public class VideoMediaElement : BaseMediaElement
     {
         private readonly VideoFile file;
+
+        private double cuevolume;
         public VideoMediaElement(VideoFile file) : base(file)
         {
             this.file = file;
-            Volume = file.Volume;
             if (file.EndAction == EndAction.Loop)
                 MediaEnded += (s, e) => Restart();
             else
                 MediaEnded += (s, e) => TriggerPlaybackEnded();
+            GlobalSettings.Instance.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(GlobalSettings.MasterVolume))
+                    UpdateMasterVolume();
+            };
         }
         //Loops the video without a fade
         public override void Restart()
@@ -63,12 +69,15 @@ namespace DeLight.Utilities.VideoOutput
                     Volume = vol;
                 }
         }
-
-        public void SetVolume(VolumeSource src, double vol)
+        public void SetCueVolume(double volume)
         {
-            if (src == VolumeSource.Cue)
-                file.Volume = vol;
-            Volume = file.Volume * GlobalSettings.Instance.MasterVolume;
+            cuevolume = Math.Clamp(volume, 0, 1);
+            UpdateMasterVolume();
+        }
+
+        public void UpdateMasterVolume()
+        {
+            Volume = Math.Clamp(cuevolume * GlobalSettings.Instance.MasterVolume, 0, 1);
         }
     }
 }

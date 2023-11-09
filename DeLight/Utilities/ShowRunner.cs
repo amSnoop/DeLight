@@ -21,8 +21,8 @@ namespace DeLight.Utilities
 
         public event EventHandler? OnLoaded, Sorted;
 
-
-        public Cue? ActiveCue;
+        [ObservableProperty]
+        private Cue? activeCue;
         public ShowRunner(Show show)
         {
             Show = show;
@@ -50,9 +50,10 @@ namespace DeLight.Utilities
             Sort();
         }
 
+
         public void DeleteCue(Cue cue)
         {
-            if(cue == ActiveCue)
+            if (cue == ActiveCue)
             {
                 Stop();
             }

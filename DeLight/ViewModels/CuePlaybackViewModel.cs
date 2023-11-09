@@ -33,7 +33,7 @@ namespace DeLight.ViewModels
             if (Cue != null)
             {
                 CurrentTime = e.CurTime;
-                RealDuration = e.Duration;
+                RealDuration = Math.Max(e.Duration, e.CurTime);
             }
         }
         partial void OnIsSeekingChanged(bool value)
@@ -69,7 +69,8 @@ namespace DeLight.ViewModels
             set
             {
                 value = Math.Clamp(value, 0, 1);
-                Messenger.SendVolumeChanged(VolumeSource.Master, value);
+                GlobalSettings.Instance.MasterVolume = value;
+                OnPropertyChanged(nameof(Volume));
             }
         }
 
@@ -77,7 +78,6 @@ namespace DeLight.ViewModels
         {
             OnPropertyChanged(nameof(FadeInTime));
             OnPropertyChanged(nameof(FadeOutTime));
-            OnPropertyChanged(nameof(Volume));
             OnPropertyChanged(nameof(Title));
             OnPropertyChanged(nameof(Note));
             OnPropertyChanged(nameof(FormattedNumber));

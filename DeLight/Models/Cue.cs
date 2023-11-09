@@ -1,7 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using DeLight.Models.Files;
-using DeLight.Utilities;
-using System.Runtime.CompilerServices;
 
 namespace DeLight.Models
 {
@@ -22,9 +20,6 @@ namespace DeLight.Models
         private string letter;
         [ObservableProperty]
         private string note;
-
-        [ObservableProperty]
-        private bool isActive;//Used for changing the color in the CueList because I didn't want to make a whole new view model for it
 
         [ObservableProperty]
         private double fadeInTime;
@@ -63,10 +58,6 @@ namespace DeLight.Models
             {
                 FilePath = s
             };
-        }
-        partial void OnVolumeChanged(double value)
-        {
-            Messenger.SendVolumeChanged(VolumeSource.Cue, value, this);
         }
         public int CompareNum(Cue? c2)
         {

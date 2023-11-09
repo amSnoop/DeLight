@@ -223,9 +223,9 @@ namespace DeLight.Utilities.LightingOutput
             }
         }
 
-        public static void Stop()
+        public static async void Stop()
         {
-            UpdateCue(null);
+            await UpdateCue(null);
         }
     }
 }
